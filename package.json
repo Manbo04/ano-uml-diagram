@@ -1,0 +1,12 @@
+{
+  "name": "ano-uml-diagram",
+  "version": "1.0.0",
+  "description": "AnO Database UML Class Diagram - Interactive",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
