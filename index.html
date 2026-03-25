@@ -3,975 +3,904 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AnO Database — UML Class Diagram</title>
+<title>AnO Architecture — Interactive UML Documentation</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #1a1a2e; font-family: 'Segoe UI', Arial, sans-serif; overflow: auto; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a1a;--surface:rgba(255,255,255,0.04);--glass:rgba(255,255,255,0.06);
+--glass-border:rgba(255,255,255,0.1);--text:#e0e0e8;--text-muted:#8888aa;
+--accent:#6c63ff;--accent2:#00d4aa;--accent3:#ff6b9d;--accent4:#ffa726;
+--radius:16px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;overflow-x:hidden;min-height:100vh}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-  .toolbar {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    background: #16213e; border-bottom: 2px solid #0f3460;
-    padding: 10px 24px; display: flex; align-items: center; gap: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-  }
-  .toolbar h1 { color: #e94560; font-size: 18px; font-weight: 700; }
-  .toolbar span { color: #a0a0c0; font-size: 13px; }
-  .legend { display: flex; gap: 16px; margin-left: auto; }
-  .legend-item { display: flex; align-items: center; gap: 6px; color: #a0a0c0; font-size: 12px; }
-  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+.bg-orbs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.15;animation:orbFloat 20s ease-in-out infinite}
+.orb:nth-child(1){width:600px;height:600px;background:#6c63ff;top:-200px;left:-100px;animation-delay:0s}
+.orb:nth-child(2){width:500px;height:500px;background:#00d4aa;bottom:-200px;right:-100px;animation-delay:-7s}
+.orb:nth-child(3){width:400px;height:400px;background:#ff6b9d;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.05)}66%{transform:translate(-20px,30px) scale(0.95)}}
 
-  .canvas {
-    padding: 70px 30px 30px 30px;
-    min-height: 100vh;
-    display: flex; flex-direction: column; gap: 40px;
-  }
+.app{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:20px}
+header{text-align:center;padding:40px 20px 20px}
+header h1{font-size:2.4rem;font-weight:700;background:linear-gradient(135deg,#6c63ff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.5px}
+header p{color:var(--text-muted);margin-top:8px;font-size:0.95rem}
 
-  .section-label {
-    color: #e94560; font-size: 15px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 2px;
-    border-bottom: 1px solid #0f3460; padding-bottom: 6px;
-    margin-bottom: -20px;
-  }
+.primary-nav{display:flex;justify-content:center;gap:6px;margin:24px 0 16px;flex-wrap:wrap}
+.primary-nav button{background:var(--glass);border:1px solid var(--glass-border);color:var(--text-muted);padding:10px 20px;border-radius:12px;cursor:pointer;font-size:0.9rem;font-weight:500;transition:all .25s}
+.primary-nav button:hover{background:rgba(108,99,255,0.15);color:var(--text)}
+.primary-nav button.active{background:rgba(108,99,255,0.2);border-color:var(--accent);color:#fff;box-shadow:0 0 20px rgba(108,99,255,0.15)}
 
-  .row { display: flex; flex-wrap: wrap; gap: 20px; justify-content: flex-start; }
+.section{display:none;animation:fadeIn .3s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-  /* UML Class Box */
-  .uml-class {
-    border: 2px solid #0f3460; border-radius: 6px;
-    min-width: 230px; max-width: 300px;
-    background: #16213e; box-shadow: 0 3px 16px rgba(0,0,0,0.3);
-    overflow: hidden; flex-shrink: 0;
-  }
-  .uml-class.legacy { border-color: #c0392b; opacity: 0.7; }
-  .uml-class.legacy .class-header { background: #6b1a1a; }
-  .uml-class.active .class-header { background: #0f3460; }
-  .uml-class.unused .class-header { background: #7d6608; }
-  .uml-class.unused { border-color: #f1c40f; opacity: 0.8; }
-  .uml-class.system .class-header { background: #1a5632; }
-  .uml-class.system { border-color: #27ae60; }
+.sub-nav{display:flex;gap:4px;margin:0 0 20px;flex-wrap:wrap}
+.sub-nav button{background:var(--surface);border:1px solid transparent;color:var(--text-muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;transition:all .2s}
+.sub-nav button:hover{color:var(--text)}
+.sub-nav button.active{background:rgba(0,212,170,0.15);border-color:var(--accent2);color:var(--accent2)}
 
-  .class-header {
-    padding: 8px 12px; text-align: center;
-    border-bottom: 2px solid rgba(255,255,255,0.1);
-  }
-  .class-header .stereotype {
-    font-size: 10px; color: rgba(255,255,255,0.5);
-    font-style: italic; display: block;
-  }
-  .class-header .name {
-    font-size: 14px; font-weight: 700; color: #fff;
-  }
+.card{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;margin-bottom:16px;transition:all .25s}
+.card:hover{border-color:rgba(108,99,255,0.3);box-shadow:var(--shadow)}
+.card h3{font-size:1.1rem;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0}
 
-  .class-section {
-    padding: 6px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-  .class-section:last-child { border-bottom: none; }
-  .class-section .section-title {
-    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
-    color: rgba(255,255,255,0.3); margin-bottom: 3px;
-  }
+.diagram-box{background:rgba(0,0,0,0.3);border:1px solid var(--glass-border);border-radius:12px;padding:20px;overflow-x:auto;margin:12px 0;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.6}
 
-  .attr {
-    font-size: 12px; color: #c0c0e0; padding: 1.5px 0;
-    font-family: 'Fira Code', 'Consolas', monospace;
-  }
-  .attr .key { color: #f1c40f; }
-  .attr .fk { color: #3498db; }
-  .attr .type { color: #7f8c8d; font-size: 11px; }
-  .attr .pk { color: #e94560; font-weight: 700; }
-  .attr .idx { color: #2ecc71; }
+.seq-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.seq-actor{min-width:100px;text-align:right;color:var(--accent);font-weight:500;font-size:0.8rem}
+.seq-arrow{flex:1;display:flex;align-items:center;position:relative;height:24px}
+.seq-arrow::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--glass-border)}
+.seq-arrow .label{position:relative;z-index:1;background:var(--bg);padding:0 8px;font-size:0.75rem;color:var(--text-muted);white-space:nowrap}
+.seq-target{min-width:100px;color:var(--accent2);font-weight:500;font-size:0.8rem}
 
-  /* Relationship lines via SVG */
-  .rel-section {
-    background: #111128; border-radius: 8px; padding: 16px 20px;
-    margin: 0 0 10px 0;
-  }
-  .rel-section h3 {
-    color: #e94560; font-size: 13px; margin-bottom: 10px;
-    text-transform: uppercase; letter-spacing: 1px;
-  }
-  .rel-table { width: 100%; border-collapse: collapse; }
-  .rel-table th {
-    text-align: left; color: #a0a0c0; font-size: 11px;
-    padding: 4px 10px; border-bottom: 1px solid #0f3460;
-    text-transform: uppercase; letter-spacing: 1px;
-  }
-  .rel-table td {
-    color: #c0c0e0; font-size: 12px; padding: 4px 10px;
-    font-family: 'Fira Code', 'Consolas', monospace;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-  }
-  .rel-table .arrow { color: #3498db; font-weight: 700; }
+.comm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.comm-node{background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:16px;text-align:center}
+.comm-node h4{color:var(--accent);font-size:0.9rem;margin-bottom:8px}
+.comm-link{font-size:0.78rem;color:var(--text-muted);padding:3px 0;border-top:1px solid rgba(255,255,255,0.04)}
+.comm-link:first-of-type{border-top:none}
 
-  .notes {
-    background: #111128; border-radius: 8px; padding: 16px 20px;
-    color: #a0a0c0; font-size: 12px; line-height: 1.6;
-    border-left: 3px solid #e94560;
-  }
-  .notes strong { color: #e94560; }
+.interaction-frame{background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:12px;padding:16px;margin:8px 0}
+.interaction-frame h4{color:var(--accent4);font-size:0.85rem;margin-bottom:8px;font-weight:600}
+.interaction-ref{display:inline-block;background:rgba(255,167,38,0.1);border:1px solid rgba(255,167,38,0.2);border-radius:6px;padding:3px 10px;font-size:0.78rem;margin:2px;cursor:pointer;transition:all .2s}
+.interaction-ref:hover{background:rgba(255,167,38,0.2);border-color:rgba(255,167,38,0.4)}
 
-  /* ====== UML GUIDE SECTION ====== */
-  .guide-container {
-    background: #111128; border-radius: 12px; padding: 24px 28px;
-    border: 1px solid #0f3460;
-  }
-  .guide-container h2 {
-    color: #e94560; font-size: 18px; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .guide-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-  }
-  .guide-card {
-    background: #16213e; border-radius: 8px; padding: 16px;
-    border: 1px solid #0f3460;
-  }
-  .guide-card h3 {
-    color: #3498db; font-size: 13px; text-transform: uppercase;
-    letter-spacing: 1.5px; margin-bottom: 10px;
-  }
-  .guide-card p { color: #a0a0c0; font-size: 12px; line-height: 1.6; margin-bottom: 8px; }
-  .guide-visual {
-    background: #111128; border-radius: 6px; padding: 12px;
-    margin-top: 8px; text-align: center;
-  }
-  .guide-visual svg { max-width: 100%; }
+.flow{padding:8px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:8px 0}
+.flow-line{width:2px;min-height:20px;background:linear-gradient(180deg,var(--accent),var(--accent2));margin:0 11px;flex-shrink:0}
+.flow-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0}
+.flow-dot.start{background:var(--accent);color:#fff}
+.flow-dot.action{background:rgba(0,212,170,0.2);border:2px solid var(--accent2);color:var(--accent2)}
+.flow-dot.decision{background:rgba(255,167,38,0.2);border:2px solid var(--accent4);color:var(--accent4)}
+.flow-dot.end{background:var(--accent3);color:#fff}
+.flow-content{flex:1;font-size:0.85rem;padding:2px 0}
+.flow-content strong{color:var(--accent2)}
+.flow-content em{color:var(--text-muted);font-style:normal;font-size:0.8rem}
+
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input{flex:1;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);padding:10px 16px;border-radius:10px;font-size:0.9rem;outline:none;transition:border-color .2s}
+.search-bar input:focus{border-color:var(--accent)}
+.search-bar input::placeholder{color:var(--text-muted)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:0.72rem;font-weight:500;margin-right:4px}
+.tag-auth{background:rgba(108,99,255,0.2);color:#a5a0ff}
+.tag-econ{background:rgba(0,212,170,0.2);color:#00d4aa}
+.tag-war{background:rgba(255,107,157,0.2);color:#ff6b9d}
+.tag-social{background:rgba(255,167,38,0.2);color:#ffa726}
+.tag-admin{background:rgba(139,92,246,0.2);color:#b794f6}
+.tag-province{background:rgba(56,189,248,0.2);color:#38bdf8}
+
+.stats-bar{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:16px 0;padding:16px;background:var(--glass);border-radius:12px;border:1px solid var(--glass-border)}
+.stat{text-align:center}
+.stat .num{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat .label{font-size:0.75rem;color:var(--text-muted);margin-top:2px}
+
+@media(max-width:768px){
+  header h1{font-size:1.6rem}
+  .primary-nav button{padding:8px 14px;font-size:0.82rem}
+  .seq-actor,.seq-target{min-width:70px;font-size:0.72rem}
+  .comm-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
+<div class="bg-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+<div class="app">
 
-<div class="toolbar">
-  <h1>AnO — UML Class Diagram</h1>
-  <span>Affairs and Order • Database Architecture</span>
-  <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#0f3460"></div> Active (normalized)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#6b1a1a"></div> Legacy (to be dropped)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#7d6608"></div> Created but unused</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#1a5632"></div> System tables</div>
-  </div>
+<header>
+  <h1>Affairs & Order — Architecture Docs</h1>
+  <p>Interactive UML diagrams covering every user scenario in the AnO backend</p>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="num">13</div><div class="label">Modules</div></div>
+  <div class="stat"><div class="num">48</div><div class="label">Routes</div></div>
+  <div class="stat"><div class="num">24</div><div class="label">User Flows</div></div>
+  <div class="stat"><div class="num">6</div><div class="label">Domains</div></div>
 </div>
 
-<div class="canvas">
+<div class="primary-nav" id="primaryNav">
+  <button class="active" onclick="showSection('overview')">Overview</button>
+  <button onclick="showSection('activity')">Activity Diagrams</button>
+  <button onclick="showSection('sequence')">Sequence Diagrams</button>
+  <button onclick="showSection('communication')">Communication</button>
+  <button onclick="showSection('interaction')">Interaction Overview</button>
+  <button onclick="showSection('class')">Class Diagram</button>
+</div>
 
-  <!-- ============ HOW TO READ THIS DIAGRAM ============ -->
-  <div class="guide-container">
-    <h2>&#128218; How to Read This UML Class Diagram</h2>
-    <p style="color:#a0a0c0; font-size:13px; margin-bottom:16px; line-height:1.6;">
-      A UML Class Diagram shows the structure of a system — its tables (classes), their attributes (columns), and how they relate to each other. Here's a quick visual guide to every concept used in this diagram:
+<!-- OVERVIEW -->
+<div class="section active" id="sec-overview">
+  <div class="search-bar"><input type="text" id="overviewSearch" placeholder="Search modules, flows, routes..." oninput="filterOverview()"></div>
+
+  <div class="card overview-card" data-tags="auth login signup discord">
+    <h3><span class="icon" style="background:rgba(108,99,255,0.2);color:var(--accent)">&#x1f510;</span> Authentication & Signup</h3>
+    <div><span class="tag tag-auth">auth</span><span class="tag tag-auth">login.py</span><span class="tag tag-auth">signup.py</span></div>
+    <p style="margin-top:10px;color:var(--text-muted);font-size:0.85rem">
+      Two login flows: <strong style="color:var(--accent)">username/password</strong> (bcrypt) and <strong style="color:var(--accent)">Discord OAuth2</strong>.
+      Signup initializes Economy 2.0 tables (user_economy, user_military), grants starter resources (15k steel, 10k components, 10k aluminium),
+      creates first province, and sets initial policies. Rate limiting via signup_attempts table. reCAPTCHA on signup. Sessions permanent (365-day).
     </p>
-    <div class="guide-grid">
-
-      <!-- CLASS -->
-      <div class="guide-card">
-        <h3>Class (Table)</h3>
-        <p>Each box represents a database table. The <strong style="color:#fff;">header</strong> shows the table name, and the <strong style="color:#fff;">stereotype</strong> (in &laquo;angle brackets&raquo;) tells you its role: entity, dictionary, mapping, legacy, or system.</p>
-        <div class="guide-visual">
-          <svg width="180" height="100" viewBox="0 0 180 100">
-            <rect x="10" y="5" width="160" height="30" rx="4" fill="#0f3460"/>
-            <text x="90" y="15" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.5)" font-style="italic">&laquo;entity&raquo;</text>
-            <text x="90" y="27" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">users</text>
-            <rect x="10" y="35" width="160" height="60" rx="0" fill="#16213e" stroke="#0f3460" stroke-width="1"/>
-            <text x="20" y="52" font-size="9" fill="#e94560" font-weight="bold">+ id : SERIAL PK</text>
-            <text x="20" y="66" font-size="9" fill="#c0c0e0">+ username : VARCHAR</text>
-            <text x="20" y="80" font-size="9" fill="#c0c0e0">+ email : VARCHAR</text>
-          </svg>
-        </div>
-      </div>
-
-      <!-- ATTRIBUTES -->
-      <div class="guide-card">
-        <h3>Attributes (Columns)</h3>
-        <p>Each line inside a class box is a column. They're color-coded:</p>
-        <div style="margin-top:6px;">
-          <p><span style="color:#e94560; font-weight:700;">Red = Primary Key (PK)</span> — unique identifier for each row</p>
-          <p><span style="color:#3498db; font-weight:700;">Blue = Foreign Key (FK)</span> — references another table's PK</p>
-          <p><span style="color:#2ecc71; font-weight:700;">Green = Index</span> — speeds up queries on this column</p>
-          <p><span style="color:#c0c0e0;">Gray = Regular column</span> — normal data field</p>
-        </div>
-      </div>
-
-      <!-- RELATIONSHIPS / ASSOCIATION -->
-      <div class="guide-card">
-        <h3>Association (Relationship)</h3>
-        <p>A line between two tables means they're related via a Foreign Key. The relationship table at the bottom shows all connections.</p>
-        <div class="guide-visual">
-          <svg width="240" height="60" viewBox="0 0 240 60">
-            <rect x="5" y="15" width="80" height="30" rx="4" fill="#0f3460"/>
-            <text x="45" y="34" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">users</text>
-            <rect x="155" y="15" width="80" height="30" rx="4" fill="#0f3460"/>
-            <text x="195" y="34" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">provinces</text>
-            <line x1="85" y1="30" x2="155" y2="30" stroke="#3498db" stroke-width="2"/>
-            <text x="120" y="25" text-anchor="middle" font-size="9" fill="#a0a0c0">1 → *</text>
-            <polygon points="150,26 155,30 150,34" fill="#3498db"/>
-          </svg>
-        </div>
-        <p style="margin-top:4px;">The arrow points from parent to child. "1 → *" means one-to-many.</p>
-      </div>
-
-      <!-- MULTIPLICITY / CARDINALITY -->
-      <div class="guide-card">
-        <h3>Multiplicity (Cardinality)</h3>
-        <p>Numbers at each end of a relationship line show how many records can exist:</p>
-        <div style="margin-top:6px;">
-          <p><strong style="color:#fff;">1 → *</strong> — One-to-Many: one user has many provinces</p>
-          <p><strong style="color:#fff;">1 → 0..1</strong> — One-to-Zero-or-One: a user belongs to at most one coalition</p>
-          <p><strong style="color:#fff;">* → *</strong> — Many-to-Many: resolved via a mapping table</p>
-        </div>
-      </div>
-
-      <!-- DICTIONARY + MAPPING PATTERN -->
-      <div class="guide-card">
-        <h3>Dictionary + Mapping Pattern</h3>
-        <p>The core design pattern used in this database. A <strong style="color:#f1c40f;">dictionary</strong> table defines what things exist, and a <strong style="color:#f1c40f;">mapping</strong> table tracks how much each user has.</p>
-        <div class="guide-visual">
-          <svg width="260" height="90" viewBox="0 0 260 90">
-            <rect x="5" y="5" width="110" height="35" rx="4" fill="#0f3460"/>
-            <text x="60" y="16" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.5)" font-style="italic">&laquo;dictionary&raquo;</text>
-            <text x="60" y="30" text-anchor="middle" font-size="9" fill="#fff" font-weight="bold">resource_dictionary</text>
-
-            <rect x="145" y="5" width="110" height="35" rx="4" fill="#0f3460"/>
-            <text x="200" y="16" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.5)" font-style="italic">&laquo;mapping&raquo;</text>
-            <text x="200" y="30" text-anchor="middle" font-size="9" fill="#fff" font-weight="bold">user_economy</text>
-
-            <line x1="115" y1="22" x2="145" y2="22" stroke="#3498db" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="130" y="18" text-anchor="middle" font-size="7" fill="#a0a0c0">1→*</text>
-
-            <text x="15" y="58" font-size="8" fill="#a0a0c0">id: 1, name: "oil"</text>
-            <text x="15" y="70" font-size="8" fill="#a0a0c0">id: 2, name: "iron"</text>
-            <text x="15" y="82" font-size="8" fill="#a0a0c0">id: 3, name: "lumber"</text>
-
-            <text x="155" y="58" font-size="8" fill="#a0a0c0">user:42, res:1, qty:5000</text>
-            <text x="155" y="70" font-size="8" fill="#a0a0c0">user:42, res:2, qty:800</text>
-            <text x="155" y="82" font-size="8" fill="#a0a0c0">user:7, res:1, qty:12000</text>
-          </svg>
-        </div>
-        <p style="margin-top:4px;">Adding a new resource = INSERT a row. No schema change needed!</p>
-      </div>
-
-      <!-- AGGREGATION / COMPOSITION -->
-      <div class="guide-card">
-        <h3>Aggregation &amp; Composition</h3>
-        <p><strong style="color:#fff;">Aggregation</strong> (open diamond) means "has a" — the child can exist independently. E.g., a coalition <em>has</em> members, but users exist without coalitions.</p>
-        <p><strong style="color:#fff;">Composition</strong> (filled diamond) means "owns" — the child can't exist without the parent. E.g., coalition_banks can't exist without a coalition.</p>
-        <div class="guide-visual">
-          <svg width="240" height="55" viewBox="0 0 240 55">
-            <!-- Aggregation -->
-            <rect x="5" y="5" width="70" height="20" rx="3" fill="#0f3460"/>
-            <text x="40" y="18" text-anchor="middle" font-size="8" fill="#fff">coalitions</text>
-            <line x1="75" y1="15" x2="140" y2="15" stroke="#3498db" stroke-width="1.5"/>
-            <polygon points="75,15 83,11 83,19" fill="none" stroke="#3498db" stroke-width="1.5"/>
-            <rect x="140" y="5" width="90" height="20" rx="3" fill="#0f3460"/>
-            <text x="185" y="18" text-anchor="middle" font-size="8" fill="#fff">coalition_members</text>
-            <text x="108" y="10" text-anchor="middle" font-size="7" fill="#a0a0c0">aggregation</text>
-
-            <!-- Composition -->
-            <rect x="5" y="35" width="70" height="20" rx="3" fill="#0f3460"/>
-            <text x="40" y="48" text-anchor="middle" font-size="8" fill="#fff">coalitions</text>
-            <line x1="75" y1="45" x2="140" y2="45" stroke="#3498db" stroke-width="1.5"/>
-            <polygon points="75,45 83,41 83,49" fill="#3498db"/>
-            <rect x="140" y="35" width="90" height="20" rx="3" fill="#0f3460"/>
-            <text x="185" y="48" text-anchor="middle" font-size="8" fill="#fff">coalition_banks</text>
-            <text x="108" y="40" text-anchor="middle" font-size="7" fill="#a0a0c0">composition</text>
-          </svg>
-        </div>
-      </div>
-
-      <!-- GENERALIZATION -->
-      <div class="guide-card">
-        <h3>Generalization (Inheritance)</h3>
-        <p>An open triangle arrow means "is a type of". In our DB, the <strong style="color:#fff;">dictionary tables</strong> act as abstract definitions that are specialized by their mapping tables. Think of it like: user_economy "extends" the concept defined in resource_dictionary.</p>
-        <div class="guide-visual">
-          <svg width="200" height="60" viewBox="0 0 200 60">
-            <rect x="55" y="2" width="90" height="22" rx="3" fill="#0f3460"/>
-            <text x="100" y="16" text-anchor="middle" font-size="8" fill="#fff">dictionary (abstract)</text>
-            <line x1="60" y1="24" x2="60" y2="50" stroke="#3498db" stroke-width="1.5"/>
-            <line x1="140" y1="24" x2="140" y2="50" stroke="#3498db" stroke-width="1.5"/>
-            <polygon points="96,24 100,30 104,24" fill="none" stroke="#3498db" stroke-width="1.5"/>
-            <rect x="10" y="40" width="90" height="18" rx="3" fill="#0f3460"/>
-            <text x="55" y="52" text-anchor="middle" font-size="7" fill="#fff">resource_dictionary</text>
-            <rect x="110" y="40" width="80" height="18" rx="3" fill="#0f3460"/>
-            <text x="150" y="52" text-anchor="middle" font-size="7" fill="#fff">unit_dictionary</text>
-          </svg>
-        </div>
-      </div>
-
-      <!-- COLOR LEGEND -->
-      <div class="guide-card">
-        <h3>Color Legend (Migration Status)</h3>
-        <p>Each table is color-coded by its current status in the database migration:</p>
-        <div style="margin-top:8px;">
-          <p><span style="display:inline-block;width:12px;height:12px;background:#0f3460;border-radius:2px;vertical-align:middle;margin-right:6px;"></span><strong style="color:#fff;">Blue</strong> — Active normalized tables (in use)</p>
-          <p><span style="display:inline-block;width:12px;height:12px;background:#6b1a1a;border-radius:2px;vertical-align:middle;margin-right:6px;"></span><strong style="color:#c0392b;">Red</strong> — Legacy tables (to be dropped)</p>
-          <p><span style="display:inline-block;width:12px;height:12px;background:#7d6608;border-radius:2px;vertical-align:middle;margin-right:6px;"></span><strong style="color:#f1c40f;">Yellow</strong> — Created but never wired in</p>
-          <p><span style="display:inline-block;width:12px;height:12px;background:#1a5632;border-radius:2px;vertical-align:middle;margin-right:6px;"></span><strong style="color:#27ae60;">Green</strong> — System tables (unchanged)</p>
-        </div>
-      </div>
-
-    </div>
   </div>
 
-  <!-- ============ PLAYER CORE ============ -->
-  <div class="section-label">Player Core</div>
-  <div class="row">
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;entity&raquo;</span>
-        <span class="name">users</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ username : VARCHAR</div>
-        <div class="attr">+ email : VARCHAR</div>
-        <div class="attr">+ password : VARCHAR</div>
-        <div class="attr">+ flag : VARCHAR</div>
-        <div class="attr">+ country_name : VARCHAR</div>
-        <div class="attr">+ created_at : TIMESTAMP</div>
-        <div class="attr">+ is_admin : BOOLEAN</div>
-        <div class="attr">+ coalition_id : INT <span class="fk">FK</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;entity&raquo;</span>
-        <span class="name">provinces</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ userId : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ name : VARCHAR</div>
-        <div class="attr">+ land : INT</div>
-        <div class="attr">+ population : INT</div>
-        <div class="attr">+ happiness : FLOAT</div>
-        <div class="attr"><span class="idx">INDEX: idx_provinces_userid</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;entity&raquo;</span>
-        <span class="name">stats</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ user_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ wars_won : INT</div>
-        <div class="attr">+ wars_lost : INT</div>
-        <div class="attr">+ trades_completed : INT</div>
-        <div class="attr">+ revenue_total : BIGINT</div>
-      </div>
-    </div>
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;entity&raquo;</span>
-        <span class="name">policies</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ user_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ tax_rate : FLOAT</div>
-        <div class="attr">+ conscription : VARCHAR</div>
-        <div class="attr">+ economy_type : VARCHAR</div>
-      </div>
-    </div>
+  <div class="card overview-card" data-tags="province building economy infrastructure energy">
+    <h3><span class="icon" style="background:rgba(56,189,248,0.2);color:#38bdf8">&#x1f3d9;</span> Province & Building Management</h3>
+    <div><span class="tag tag-province">province</span><span class="tag tag-province">province.py</span><span class="tag tag-province">action_loop.py</span></div>
+    <p style="margin-top:10px;color:var(--text-muted);font-size:0.85rem">
+      Provinces have population demographics (children/working/elderly), happiness, productivity, pollution, energy, land.
+      36 building types across 6 categories: electricity (5), retail (7), public works (7), military (5), industry (9), processing (5).
+      Building uses advisory locks for deadlock safety. City slots hold commercial buildings; land slots hold extractors.
+      Energy system: producers vs consumers must balance. Rations distribution requires physical distribution buildings.
+    </p>
   </div>
 
-  <!-- ============ ECONOMY (NORMALIZED - ACTIVE) ============ -->
-  <div class="section-label">Economy — Dictionary + Mapping Pattern (Active)</div>
-  <div class="row">
-
-    <div class="uml-class active">
-      <div class="class-header">
-        <span class="stereotype">&laquo;dictionary&raquo;</span>
-        <span class="name">resource_dictionary</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ name : VARCHAR UNIQUE</div>
-        <div class="attr">+ display_name : VARCHAR</div>
-        <div class="attr">+ category : VARCHAR</div>
-      </div>
-    </div>
-
-    <div class="uml-class active">
-      <div class="class-header">
-        <span class="stereotype">&laquo;mapping&raquo;</span>
-        <span class="name">user_economy</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ user_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ resource_id : INT <span class="fk">FK → resource_dictionary.id</span></div>
-        <div class="attr">+ quantity : BIGINT</div>
-        <div class="attr"><span class="idx">INDEX: (user_id, resource_id)</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class active">
-      <div class="class-header">
-        <span class="stereotype">&laquo;dictionary&raquo;</span>
-        <span class="name">building_dictionary</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ name : VARCHAR UNIQUE</div>
-        <div class="attr">+ display_name : VARCHAR</div>
-        <div class="attr">+ category : VARCHAR</div>
-        <div class="attr">+ base_cost : JSONB</div>
-      </div>
-    </div>
-
-    <div class="uml-class active">
-      <div class="class-header">
-        <span class="stereotype">&laquo;mapping&raquo;</span>
-        <span class="name">user_buildings</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ user_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ building_id : INT <span class="fk">FK → building_dictionary.id</span></div>
-        <div class="attr">+ quantity : INT</div>
-        <div class="attr"><span class="idx">INDEX: (user_id, building_id)</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class active">
-      <div class="class-header">
-        <span class="stereotype">&laquo;dictionary&raquo;</span>
-        <span class="name">unit_dictionary</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ name : VARCHAR UNIQUE</div>
-        <div class="attr">+ display_name : VARCHAR</div>
-        <div class="attr">+ attack : INT</div>
-        <div class="attr">+ defense : INT</div>
-      </div>
-    </div>
-
-    <div class="uml-class active">
-      <div class="class-header">
-        <span class="stereotype">&laquo;mapping&raquo;</span>
-        <span class="name">user_military</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ user_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ unit_id : INT <span class="fk">FK → unit_dictionary.id</span></div>
-        <div class="attr">+ quantity : INT</div>
-        <div class="attr"><span class="idx">INDEX: (user_id, unit_id)</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class active">
-      <div class="class-header">
-        <span class="stereotype">&laquo;dictionary&raquo;</span>
-        <span class="name">tech_dictionary</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ name : VARCHAR UNIQUE</div>
-        <div class="attr">+ display_name : VARCHAR</div>
-        <div class="attr">+ max_level : INT</div>
-      </div>
-    </div>
-
-    <div class="uml-class active">
-      <div class="class-header">
-        <span class="stereotype">&laquo;mapping&raquo;</span>
-        <span class="name">user_tech</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ user_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ tech_id : INT <span class="fk">FK → tech_dictionary.id</span></div>
-        <div class="attr">+ level : INT DEFAULT 0</div>
-      </div>
-    </div>
+  <div class="card overview-card" data-tags="economy market trade resources gold tax revenue">
+    <h3><span class="icon" style="background:rgba(0,212,170,0.2);color:var(--accent2)">&#x1f4b0;</span> Economy & Market</h3>
+    <div><span class="tag tag-econ">economy</span><span class="tag tag-econ">market.py</span><span class="tag tag-econ">trade_agreements.py</span><span class="tag tag-econ">countries.py</span></div>
+    <p style="margin-top:10px;color:var(--text-muted);font-size:0.85rem">
+      15 resources + gold currency. Normalized schema: resource_dictionary + user_economy.
+      Market: buy/sell offers, direct trades. Trade agreements: recurring automatic exchanges (1h-1wk intervals)
+      with proposer/receiver/status/max_executions lifecycle. Tax income based on population x land x policy modifiers.
+      Revenue: building production x productivity multiplier minus operating costs. Demographic consumption: children/working/elderly eat at different rates.
+    </p>
   </div>
 
-  <!-- ============ COALITIONS — LEGACY ============ -->
-  <div class="section-label">Coalitions — Legacy Tables (to be replaced in Phase 1)</div>
-  <div class="row">
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">colNames</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (wide)</div>
-        <div class="attr">+ colId : SERIAL PK</div>
-        <div class="attr">+ colName : VARCHAR</div>
-        <div class="attr">+ colFlag : VARCHAR</div>
-        <div class="attr">+ colDescription : TEXT</div>
-        <div class="attr">+ colLeader : INT</div>
-        <div class="attr">+ colMembers : INT</div>
-        <div class="attr">+ founded : TIMESTAMP</div>
-        <div class="attr">+ ... (8+ columns)</div>
-      </div>
-    </div>
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">coalitions_legacy</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (wide)</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ colId : INT</div>
-        <div class="attr">+ userId : INT</div>
-        <div class="attr">+ role : VARCHAR</div>
-        <div class="attr">+ ... (20+ columns)</div>
-      </div>
-    </div>
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">treaties</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ col1_id : INT</div>
-        <div class="attr">+ col2_id : INT</div>
-        <div class="attr">+ type : VARCHAR</div>
-        <div class="attr">+ status : VARCHAR</div>
-        <div class="attr">+ created_at : TIMESTAMP</div>
-      </div>
-    </div>
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">colBanks</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (wide)</div>
-        <div class="attr">+ colId : INT</div>
-        <div class="attr">+ gold : BIGINT</div>
-        <div class="attr">+ oil : BIGINT</div>
-        <div class="attr">+ ... (one col per resource)</div>
-      </div>
-    </div>
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">colBanksRequests</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ colId : INT</div>
-        <div class="attr">+ userId : INT</div>
-        <div class="attr">+ resource : VARCHAR</div>
-        <div class="attr">+ amount : INT</div>
-        <div class="attr">+ status : VARCHAR</div>
-      </div>
-    </div>
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">col_applications</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ colId : INT</div>
-        <div class="attr">+ userId : INT</div>
-        <div class="attr">+ message : TEXT</div>
-        <div class="attr">+ status : VARCHAR</div>
-      </div>
-    </div>
+  <div class="card overview-card" data-tags="war combat military attack fight morale supply units">
+    <h3><span class="icon" style="background:rgba(255,107,157,0.2);color:var(--accent3)">&#x2694;</span> War & Combat System</h3>
+    <div><span class="tag tag-war">war</span><span class="tag tag-war">wars/</span><span class="tag tag-war">attack_scripts/</span></div>
+    <p style="margin-top:10px;color:var(--text-muted);font-size:0.85rem">
+      12 unit types: soldiers, tanks, artillery, bombers, fighters, apaches, destroyers, cruisers, submarines, spies, ICBMs, nukes.
+      War lifecycle: declare > choose 3 units > set amounts > fight > morale decremented > peace or war end.
+      Supply regeneration: 50/hr, max 2000, with upgrade bonuses. Combat: 3-roll dice with unit bonuses.
+      Casualty persistence via war_orchestrator. Infrastructure damage: random building destruction (1500 HP each).
+      War end: 20% resource transfer from loser. Peace offers with demanded resources.
+    </p>
   </div>
 
-  <!-- ============ COALITIONS — TARGET ============ -->
-  <div class="section-label">Coalitions — Target Normalized Schema (Phase 1)</div>
-  <div class="row">
-
-    <div class="uml-class unused">
-      <div class="class-header">
-        <span class="stereotype">&laquo;created, unused&raquo;</span>
-        <span class="name">coalitions</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ name : VARCHAR UNIQUE</div>
-        <div class="attr">+ flag : VARCHAR</div>
-        <div class="attr">+ description : TEXT</div>
-        <div class="attr">+ leader_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ founded_date : TIMESTAMP</div>
-        <div class="attr">+ settings : JSONB</div>
-      </div>
-    </div>
-
-    <div class="uml-class unused">
-      <div class="class-header">
-        <span class="stereotype">&laquo;created, unused&raquo;</span>
-        <span class="name">coalition_members</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ coalition_id : INT <span class="fk">FK → coalitions.id</span></div>
-        <div class="attr">+ user_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ role : ENUM(leader, officer, member)</div>
-        <div class="attr">+ joined_date : TIMESTAMP</div>
-        <div class="attr"><span class="idx">UNIQUE: (coalition_id, user_id)</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class unused">
-      <div class="class-header">
-        <span class="stereotype">&laquo;new — Phase 1&raquo;</span>
-        <span class="name">coalition_banks</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ coalition_id : INT <span class="fk">FK → coalitions.id</span></div>
-        <div class="attr">+ resource_id : INT <span class="fk">FK → resource_dictionary.id</span></div>
-        <div class="attr">+ amount : BIGINT DEFAULT 0</div>
-        <div class="attr"><span class="idx">UNIQUE: (coalition_id, resource_id)</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class unused">
-      <div class="class-header">
-        <span class="stereotype">&laquo;new — Phase 1&raquo;</span>
-        <span class="name">coalition_treaties</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ coalition1_id : INT <span class="fk">FK → coalitions.id</span></div>
-        <div class="attr">+ coalition2_id : INT <span class="fk">FK → coalitions.id</span></div>
-        <div class="attr">+ type : ENUM(alliance, nap, trade)</div>
-        <div class="attr">+ status : ENUM(pending, active, broken)</div>
-        <div class="attr">+ created_at : TIMESTAMP</div>
-        <div class="attr"><span class="idx">INDEX: (coalition1_id), (coalition2_id)</span></div>
-      </div>
-    </div>
+  <div class="card overview-card" data-tags="coalition alliance treaty banking role diplomacy">
+    <h3><span class="icon" style="background:rgba(255,167,38,0.2);color:var(--accent4)">&#x1f91d;</span> Coalitions & Diplomacy</h3>
+    <div><span class="tag tag-social">social</span><span class="tag tag-social">coalitions.py</span><span class="tag tag-social">intelligence.py</span></div>
+    <p style="margin-top:10px;color:var(--text-muted);font-size:0.85rem">
+      Coalition system: 8 roles (leader, co-leader, minister of x4, member, applicant). 27 routes.
+      Coalition banking, treaties (NAP, MDP, trade), applications, flags/descriptions.
+      Intelligence: spy missions with 12-hour cooldown, probability-based success.
+    </p>
   </div>
 
-  <!-- ============ LEGACY ECONOMY (TO DROP) ============ -->
-  <div class="section-label">Economy — Legacy Wide Tables (to be dropped in Phase 3)</div>
-  <div class="row">
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">proInfra</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (44 columns!)</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ userId : INT</div>
-        <div class="attr">+ coal_mines : INT</div>
-        <div class="attr">+ oil_wells : INT</div>
-        <div class="attr">+ iron_mines : INT</div>
-        <div class="attr">+ lumber_mills : INT</div>
-        <div class="attr">+ farms : INT</div>
-        <div class="attr">+ barracks : INT</div>
-        <div class="attr">+ ... (38 more building columns)</div>
-      </div>
-    </div>
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">resources</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (15 columns)</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ usersId : INT</div>
-        <div class="attr">+ gold : BIGINT</div>
-        <div class="attr">+ oil : BIGINT</div>
-        <div class="attr">+ iron : BIGINT</div>
-        <div class="attr">+ lumber : BIGINT</div>
-        <div class="attr">+ coal : BIGINT</div>
-        <div class="attr">+ ... (9 more resource columns)</div>
-      </div>
-    </div>
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">upgrades</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (18 columns)</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ userId : INT</div>
-        <div class="attr">+ mining_tech : INT</div>
-        <div class="attr">+ military_tech : INT</div>
-        <div class="attr">+ agriculture_tech : INT</div>
-        <div class="attr">+ ... (15 more tech columns)</div>
-      </div>
-    </div>
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — DROP&raquo;</span>
-        <span class="name">military</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (10 columns)</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ userId : INT</div>
-        <div class="attr">+ infantry : INT</div>
-        <div class="attr">+ tanks : INT</div>
-        <div class="attr">+ artillery : INT</div>
-        <div class="attr">+ ... (7 more unit columns)</div>
-      </div>
-    </div>
+  <div class="card overview-card" data-tags="tech upgrade research policy soldiers education">
+    <h3><span class="icon" style="background:rgba(139,92,246,0.2);color:#b794f6">&#x1f52c;</span> Tech Tree, Upgrades & Policies</h3>
+    <div><span class="tag tag-admin">tech</span><span class="tag tag-admin">upgrades.py</span><span class="tag tag-admin">policies.py</span><span class="tag tag-admin">action_loop.py</span></div>
+    <p style="margin-top:10px;color:var(--text-muted);font-size:0.85rem">
+      18 tech upgrades with prerequisite chains. Research costs components, uses advisory locks.
+      Soldiers policy: 7 levels. Education policy: 6 levels. Phase 3 policies: universal healthcare,
+      mandatory schooling, industrial subsidies, rationing program. Feature flags control phased rollout.
+    </p>
   </div>
+</div>
 
-  <!-- ============ MARKET ============ -->
-  <div class="section-label">Market System</div>
-  <div class="row">
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — Phase 2&raquo;</span>
-        <span class="name">offers</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (current)</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ userId : INT</div>
-        <div class="attr">+ resource : VARCHAR (text name)</div>
-        <div class="attr">+ type : VARCHAR (buy/sell)</div>
-        <div class="attr">+ quantity : INT</div>
-        <div class="attr">+ price : INT</div>
-        <div class="attr">+ created_at : TIMESTAMP</div>
-      </div>
-    </div>
-
-    <div class="uml-class unused">
-      <div class="class-header">
-        <span class="stereotype">&laquo;target — Phase 2&raquo;</span>
-        <span class="name">market_offers</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ seller_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ resource_id : INT <span class="fk">FK → resource_dictionary.id</span></div>
-        <div class="attr">+ type : ENUM(buy, sell)</div>
-        <div class="attr">+ quantity : INT</div>
-        <div class="attr">+ price : INT</div>
-        <div class="attr">+ created_at : TIMESTAMP</div>
-        <div class="attr"><span class="idx">INDEX: (resource_id, type, price)</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class unused">
-      <div class="class-header">
-        <span class="stereotype">&laquo;new — Phase 2&raquo;</span>
-        <span class="name">trade_history</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ buyer_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ seller_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ resource_id : INT <span class="fk">FK → resource_dictionary.id</span></div>
-        <div class="attr">+ quantity : INT</div>
-        <div class="attr">+ price : INT</div>
-        <div class="attr">+ executed_at : TIMESTAMP</div>
-      </div>
-    </div>
+<!-- ACTIVITY DIAGRAMS -->
+<div class="section" id="sec-activity">
+  <div class="sub-nav" id="activitySubNav">
+    <button class="active" onclick="showActivityDiagram('login',this)">Login Flow</button>
+    <button onclick="showActivityDiagram('signup',this)">Signup Flow</button>
+    <button onclick="showActivityDiagram('build',this)">Build Structure</button>
+    <button onclick="showActivityDiagram('research',this)">Research Tech</button>
+    <button onclick="showActivityDiagram('war-declare',this)">Declare War</button>
+    <button onclick="showActivityDiagram('war-fight',this)">Combat Fight</button>
+    <button onclick="showActivityDiagram('market-trade',this)">Market Trade</button>
+    <button onclick="showActivityDiagram('trade-agreement',this)">Trade Agreement</button>
+    <button onclick="showActivityDiagram('peace',this)">Peace Negotiation</button>
+    <button onclick="showActivityDiagram('province-view',this)">Province View</button>
+    <button onclick="showActivityDiagram('tax-income',this)">Tax Income Tick</button>
+    <button onclick="showActivityDiagram('spy',this)">Spy Mission</button>
   </div>
+  <div id="activityContent"></div>
+</div>
 
-  <!-- ============ WARS ============ -->
-  <div class="section-label">Wars & Diplomacy</div>
-  <div class="row">
-
-    <div class="uml-class legacy">
-      <div class="class-header">
-        <span class="stereotype">&laquo;legacy — Phase 2&raquo;</span>
-        <span class="name">wars</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes (current)</div>
-        <div class="attr">+ id : SERIAL PK</div>
-        <div class="attr">+ attackerId : INT</div>
-        <div class="attr">+ defenderId : INT</div>
-        <div class="attr">+ status : VARCHAR</div>
-        <div class="attr">+ ... (10+ columns)</div>
-      </div>
-    </div>
-
-    <div class="uml-class unused">
-      <div class="class-header">
-        <span class="stereotype">&laquo;target — Phase 2&raquo;</span>
-        <span class="name">wars_normalized</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ attacker_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ defender_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ status : ENUM(active, truce, ended)</div>
-        <div class="attr">+ started_at : TIMESTAMP</div>
-        <div class="attr">+ ended_at : TIMESTAMP</div>
-        <div class="attr"><span class="idx">INDEX: (attacker_id), (defender_id)</span></div>
-      </div>
-    </div>
-
-    <div class="uml-class unused">
-      <div class="class-header">
-        <span class="stereotype">&laquo;new — Phase 2&raquo;</span>
-        <span class="name">peace_offers</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Attributes</div>
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ war_id : INT <span class="fk">FK → wars_normalized.id</span></div>
-        <div class="attr">+ proposer_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ terms : JSONB</div>
-        <div class="attr">+ status : ENUM(pending, accepted, rejected)</div>
-      </div>
-    </div>
+<!-- SEQUENCE DIAGRAMS -->
+<div class="section" id="sec-sequence">
+  <div class="sub-nav" id="sequenceSubNav">
+    <button class="active" onclick="showSequenceDiagram('login',this)">Login</button>
+    <button onclick="showSequenceDiagram('signup',this)">Signup</button>
+    <button onclick="showSequenceDiagram('build',this)">Build</button>
+    <button onclick="showSequenceDiagram('war-full',this)">War Lifecycle</button>
+    <button onclick="showSequenceDiagram('market-buy',this)">Market Buy</button>
+    <button onclick="showSequenceDiagram('trade-agreement',this)">Trade Agreement</button>
+    <button onclick="showSequenceDiagram('coalition-join',this)">Coalition Join</button>
+    <button onclick="showSequenceDiagram('spy',this)">Spy Mission</button>
   </div>
+  <div id="sequenceContent"></div>
+</div>
 
-  <!-- ============ SYSTEM / INFRA ============ -->
-  <div class="section-label">System & Infrastructure</div>
-  <div class="row">
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;system&raquo;</span>
-        <span class="name">admin_actions</span>
-      </div>
-      <div class="class-section">
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ admin_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ action : VARCHAR</div>
-        <div class="attr">+ target_id : INT</div>
-        <div class="attr">+ created_at : TIMESTAMP</div>
-      </div>
-    </div>
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;system&raquo;</span>
-        <span class="name">game_tick_logs</span>
-      </div>
-      <div class="class-section">
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ tick_type : VARCHAR</div>
-        <div class="attr">+ started_at : TIMESTAMP</div>
-        <div class="attr">+ finished_at : TIMESTAMP</div>
-        <div class="attr">+ rows_affected : INT</div>
-      </div>
-    </div>
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;system&raquo;</span>
-        <span class="name">news</span>
-      </div>
-      <div class="class-section">
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ user_id : INT <span class="fk">FK → users.id</span></div>
-        <div class="attr">+ type : VARCHAR</div>
-        <div class="attr">+ message : TEXT</div>
-        <div class="attr">+ created_at : TIMESTAMP</div>
-      </div>
-    </div>
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;system&raquo;</span>
-        <span class="name">task_cursors</span>
-      </div>
-      <div class="class-section">
-        <div class="attr"><span class="pk">+ id : SERIAL PK</span></div>
-        <div class="attr">+ task_name : VARCHAR</div>
-        <div class="attr">+ last_cursor : INT</div>
-        <div class="attr">+ updated_at : TIMESTAMP</div>
-      </div>
-    </div>
-
-    <div class="uml-class system">
-      <div class="class-header">
-        <span class="stereotype">&laquo;optimization — Phase 3&raquo;</span>
-        <span class="name">mv_country_rankings</span>
-      </div>
-      <div class="class-section">
-        <div class="section-title">Materialized View</div>
-        <div class="attr">+ user_id : INT</div>
-        <div class="attr">+ username : VARCHAR</div>
-        <div class="attr">+ flag : VARCHAR</div>
-        <div class="attr">+ influence : BIGINT</div>
-        <div class="attr" style="color:#2ecc71; font-style:italic;">Refreshed every 5 min via Celery Beat</div>
-      </div>
-    </div>
+<!-- COMMUNICATION -->
+<div class="section" id="sec-communication">
+  <div class="sub-nav" id="commSubNav">
+    <button class="active" onclick="showCommDiagram('modules',this)">Module Dependencies</button>
+    <button onclick="showCommDiagram('war-system',this)">War System</button>
+    <button onclick="showCommDiagram('economy',this)">Economy System</button>
+    <button onclick="showCommDiagram('province',this)">Province System</button>
   </div>
+  <div id="commContent"></div>
+</div>
 
-  <!-- ============ RELATIONSHIPS ============ -->
-  <div class="rel-section">
-    <h3>Relationships (Foreign Keys)</h3>
-    <table class="rel-table">
-      <thead><tr><th>From</th><th></th><th>To</th><th>Cardinality</th><th>Relationship</th></tr></thead>
-      <tbody>
-        <tr><td>users</td><td class="arrow">──&lt;</td><td>provinces</td><td>1 → *</td><td>A user owns many provinces</td></tr>
-        <tr><td>users</td><td class="arrow">──&lt;</td><td>user_economy</td><td>1 → *</td><td>A user has many resource rows</td></tr>
-        <tr><td>users</td><td class="arrow">──&lt;</td><td>user_buildings</td><td>1 → *</td><td>A user has many building rows</td></tr>
-        <tr><td>users</td><td class="arrow">──&lt;</td><td>user_military</td><td>1 → *</td><td>A user has many military rows</td></tr>
-        <tr><td>users</td><td class="arrow">──&lt;</td><td>user_tech</td><td>1 → *</td><td>A user has many tech rows</td></tr>
-        <tr><td>resource_dictionary</td><td class="arrow">──&lt;</td><td>user_economy</td><td>1 → *</td><td>Dictionary entry used by many users</td></tr>
-        <tr><td>building_dictionary</td><td class="arrow">──&lt;</td><td>user_buildings</td><td>1 → *</td><td>Dictionary entry used by many users</td></tr>
-        <tr><td>unit_dictionary</td><td class="arrow">──&lt;</td><td>user_military</td><td>1 → *</td><td>Dictionary entry used by many users</td></tr>
-        <tr><td>tech_dictionary</td><td class="arrow">──&lt;</td><td>user_tech</td><td>1 → *</td><td>Dictionary entry used by many users</td></tr>
-        <tr><td>coalitions</td><td class="arrow">──&lt;</td><td>coalition_members</td><td>1 → *</td><td>A coalition has many members</td></tr>
-        <tr><td>users</td><td class="arrow">──&lt;</td><td>coalition_members</td><td>1 → 0..1</td><td>A user belongs to at most one coalition</td></tr>
-        <tr><td>coalitions</td><td class="arrow">──&lt;</td><td>coalition_banks</td><td>1 → *</td><td>A coalition has many bank resource rows</td></tr>
-        <tr><td>coalitions</td><td class="arrow">──&lt;</td><td>coalition_treaties</td><td>1 → *</td><td>A coalition participates in many treaties</td></tr>
-        <tr><td>resource_dictionary</td><td class="arrow">──&lt;</td><td>coalition_banks</td><td>1 → *</td><td>Bank stores by resource type</td></tr>
-        <tr><td>resource_dictionary</td><td class="arrow">──&lt;</td><td>market_offers</td><td>1 → *</td><td>Offers reference resource types</td></tr>
-        <tr><td>users</td><td class="arrow">──&lt;</td><td>market_offers</td><td>1 → *</td><td>A user posts many offers</td></tr>
-        <tr><td>users</td><td class="arrow">──&lt;</td><td>wars_normalized</td><td>1 → *</td><td>A user can be in many wars</td></tr>
-        <tr><td>wars_normalized</td><td class="arrow">──&lt;</td><td>peace_offers</td><td>1 → *</td><td>A war has many peace proposals</td></tr>
-      </tbody>
-    </table>
+<!-- INTERACTION OVERVIEW -->
+<div class="section" id="sec-interaction">
+  <div class="sub-nav" id="interactionSubNav">
+    <button class="active" onclick="showInteractionDiagram('new-player',this)">New Player Journey</button>
+    <button onclick="showInteractionDiagram('war-cycle',this)">War Cycle</button>
+    <button onclick="showInteractionDiagram('econ-cycle',this)">Economy Cycle</button>
+    <button onclick="showInteractionDiagram('coalition-life',this)">Coalition Lifecycle</button>
   </div>
+  <div id="interactionContent"></div>
+</div>
 
-  <!-- ============ NOTES ============ -->
-  <div class="notes">
-    <strong>Migration Status Notes:</strong><br><br>
-    <strong style="color:#2ecc71;">● Active (blue):</strong> Dictionary + mapping tables created by migrations 0002–0004. Currently in use by province.py, countries.py, action_loop.py.<br>
-    <strong style="color:#c0392b;">● Legacy (red):</strong> Original denormalized wide tables. Still actively queried by coalitions.py (100%), market.py (100%), and partially by tasks.py. To be dropped after Phase 3.<br>
-    <strong style="color:#f1c40f;">● Unused (yellow):</strong> Tables that were created by migrations 0003 but never wired into application code. Need data migration + coalitions.py rewrite in Phase 1.<br>
-    <strong style="color:#27ae60;">● System (green):</strong> Infrastructure tables that remain unchanged across all migration phases.<br><br>
-    <strong>Key pattern:</strong> Every game entity follows the <em>Dictionary + Mapping</em> pattern. The dictionary table defines what exists (e.g., "oil" in resource_dictionary). The mapping table tracks player quantities (e.g., user 42 has 5,000 oil in user_economy). This means adding a new resource is an INSERT, not an ALTER TABLE.
+<!-- CLASS DIAGRAM -->
+<div class="section" id="sec-class">
+  <div class="sub-nav" id="classSubNav">
+    <button class="active" onclick="showClassDiagram('guide',this)">Guide</button>
+    <button onclick="showClassDiagram('tables',this)">Table Definitions</button>
+    <button onclick="showClassDiagram('relationships',this)">Relationships</button>
   </div>
+  <div id="classContent"></div>
+</div>
 
 </div>
 
+<script>
+function showSection(id){
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.primary-nav button').forEach(function(b){b.classList.remove('active')});
+  event.target.classList.add('active');
+  if(id==='activity'){var b=document.querySelector('#activitySubNav button.active');if(b)b.click();}
+  if(id==='sequence'){var b=document.querySelector('#sequenceSubNav button.active');if(b)b.click();}
+  if(id==='communication'){var b=document.querySelector('#commSubNav button.active');if(b)b.click();}
+  if(id==='interaction'){var b=document.querySelector('#interactionSubNav button.active');if(b)b.click();}
+  if(id==='class'){var b=document.querySelector('#classSubNav button.active');if(b)b.click();}
+}
+function setSubActive(navId,btn){
+  document.querySelectorAll('#'+navId+' button').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+}
+function filterOverview(){
+  var q=document.getElementById('overviewSearch').value.toLowerCase();
+  document.querySelectorAll('.overview-card').forEach(function(c){
+    var tags=c.dataset.tags||'';var text=c.textContent.toLowerCase();
+    c.style.display=(tags.includes(q)||text.includes(q))?'block':'none';
+  });
+}
+
+// ===== ACTIVITY =====
+var AD={
+'login':{title:'User Login Flow',tags:['auth','login.py'],steps:[
+{t:'start',x:'User visits /login'},
+{t:'decision',x:'Login method?',b:['Normal Login','Discord OAuth2']},
+{t:'action',x:'<strong>Normal:</strong> Submit username + password form'},
+{t:'action',x:'Query users table for username, fetch hash'},
+{t:'decision',x:'bcrypt.checkpw(password, hash)?',b:['Match','No Match']},
+{t:'action',x:'<strong>Fail:</strong> Return "invalid credentials" error'},
+{t:'action',x:'<strong>Success:</strong> Set session["user_id"], session.permanent = True (365 days)'},
+{t:'action',x:'Update stats.last_active = current timestamp'},
+{t:'action',x:'Ensure policies row exists (INSERT ON CONFLICT DO NOTHING)'},
+{t:'end',x:'Redirect to / (dashboard)'},
+{t:'action',x:'<strong>Discord OAuth2:</strong> Redirect to Discord authorize URL'},
+{t:'action',x:'User authorizes, Discord redirects to /callback'},
+{t:'action',x:'Fetch token from Discord TOKEN_URL'},
+{t:'decision',x:'State mismatch?',b:['OK','Retry with incoming state']},
+{t:'action',x:'Fetch user info from Discord /users/@me'},
+{t:'action',x:'Look up user by discord_id, set session, redirect to /'},
+]},
+'signup':{title:'User Signup Flow',tags:['auth','signup.py'],steps:[
+{t:'start',x:'User visits /signup'},
+{t:'action',x:'Display signup form (username, email, country name, password)'},
+{t:'action',x:'Verify reCAPTCHA response'},
+{t:'decision',x:'reCAPTCHA valid?',b:['Yes','No = error']},
+{t:'action',x:'Check rate limiting: signup_attempts table (IP + fingerprint)'},
+{t:'decision',x:'Too many attempts?',b:['No','Yes = blocked']},
+{t:'action',x:'Validate username uniqueness in users table'},
+{t:'action',x:'Hash password with bcrypt.hashpw()'},
+{t:'action',x:'INSERT into users (username, email, hash, is_verified, discord_id)'},
+{t:'action',x:'INSERT into stats (id, gold=10000, location=Grassland)'},
+{t:'action',x:'INSERT into provinces (first province with default population)'},
+{t:'action',x:'INSERT into policies (default soldiers=1, education=1)'},
+{t:'action',x:'Call _init_economy_tables(db, user_id):'},
+{t:'action',x:'&rarr; Insert user_economy rows for ALL resources (quantity=0)'},
+{t:'action',x:'&rarr; Grant starter: 15k steel, 10k components, 10k aluminium'},
+{t:'action',x:'&rarr; Insert user_military rows for all active units (quantity=0)'},
+{t:'action',x:'Set session["user_id"], redirect to /'},
+{t:'end',x:'New player ready with starter nation'},
+]},
+'build':{title:'Build Structure Flow',tags:['province','action_loop.py'],steps:[
+{t:'start',x:'User clicks "Build" on province page'},
+{t:'action',x:'POST /province/build with building_id, quantity, province_id'},
+{t:'action',x:'Acquire advisory lock: pg_advisory_xact_lock(user_id)'},
+{t:'action',x:'Look up building in building_dictionary (validate exists & is_active)'},
+{t:'decision',x:'Has tech prerequisites?',b:['Met','Not met = error']},
+{t:'action',x:'Calculate total cost: base_cost x quantity'},
+{t:'action',x:'Check user_economy for BUILD_COST_RESOURCE ("steel") balance'},
+{t:'decision',x:'Enough steel?',b:['Yes','No = insufficient resources']},
+{t:'action',x:'Deduct steel from user_economy'},
+{t:'action',x:'UPSERT into user_buildings (user_id, building_id, province_id, quantity)'},
+{t:'action',x:'ON CONFLICT: SET quantity = quantity + new_amount'},
+{t:'action',x:'Invalidate user cache'},
+{t:'end',x:'Building constructed, province updated'},
+]},
+'research':{title:'Research Technology Flow',tags:['tech','action_loop.py'],steps:[
+{t:'start',x:'User visits /upgrades and selects tech'},
+{t:'action',x:'POST /research with tech_id'},
+{t:'action',x:'Acquire advisory lock: pg_advisory_xact_lock(user_id)'},
+{t:'action',x:'Look up tech in tech_dictionary'},
+{t:'decision',x:'Prerequisites met?',b:['Yes','No = error']},
+{t:'decision',x:'Already researched?',b:['No','Yes = already unlocked']},
+{t:'action',x:'Check user_economy for RESEARCH_COST_RESOURCE ("components")'},
+{t:'decision',x:'Enough components?',b:['Yes','No = error']},
+{t:'action',x:'Deduct components from user_economy'},
+{t:'action',x:'INSERT into user_tech (user_id, tech_id, is_unlocked=TRUE)'},
+{t:'action',x:'Invalidate user cache'},
+{t:'end',x:'Technology unlocked'},
+]},
+'war-declare':{title:'Declare War Flow',tags:['war','wars/routes.py'],steps:[
+{t:'start',x:'User visits /wars and selects target nation'},
+{t:'action',x:'Check target influence range (0.9x - 2x own influence)'},
+{t:'decision',x:'Target in valid range?',b:['Yes','No = cannot declare']},
+{t:'decision',x:'Already at war with target?',b:['No','Yes = error']},
+{t:'action',x:'INSERT into wars (attacker_id, defender_id, war_type, aggressor_message)'},
+{t:'action',x:'Set initial: attacker_morale=100, defender_morale=100'},
+{t:'action',x:'Set initial: attacker_supplies=1000, defender_supplies=1000'},
+{t:'action',x:'Set last_visited = current time (for supply regeneration)'},
+{t:'action',x:'Send news to defender: "You have been declared war on"'},
+{t:'end',x:'War active &mdash; both sides can now fight'},
+]},
+'war-fight':{title:'Combat Fight Flow',tags:['war','attack_scripts/'],steps:[
+{t:'start',x:'User visits /war/{id}, clicks Attack'},
+{t:'action',x:'/warchoose: Select 3 unit types (or 1 special unit: ICBM/nuke)'},
+{t:'action',x:'/waramount: Set quantity for each selected unit'},
+{t:'action',x:'Validate: user owns enough units (user_military check)'},
+{t:'action',x:'Check maintenance resources: units without fuel are "unusable"'},
+{t:'action',x:'Update supply: 50 supply/hr regeneration (max 2000), apply upgrade bonuses'},
+{t:'decision',x:'Enough supplies?',b:['Yes','No = cannot attack']},
+{t:'action',x:'Deduct supply cost from attacker'},
+{t:'action',x:'<strong>Combat loop (3 rounds):</strong>'},
+{t:'action',x:'&rarr; For each attacker_unit x defender_unit: compute attack_effects'},
+{t:'action',x:'&rarr; calculate_bonuses(): unit_of_army % x attack_magnitude / 100'},
+{t:'action',x:'&rarr; compute_unit_amount_bonus(): sum(unit_count / 150)'},
+{t:'action',x:'&rarr; compute_strength(): weighted sum (soldiers 0.0002, tanks 0.02, nukes 12)'},
+{t:'decision',x:'Determine winner by total bonus comparison',b:['Attacker wins','Defender wins']},
+{t:'action',x:'compute_morale_delta(): based on loser units, clamped 1-200'},
+{t:'action',x:'persist_fight_results(): single DB transaction for casualties + morale'},
+{t:'action',x:'&rarr; _apply_casualties(): UPDATE user_military (clamp to prevent negatives)'},
+{t:'action',x:'&rarr; UPDATE wars SET {morale_column} = new_morale'},
+{t:'decision',x:'Morale <= 0?',b:['No = war continues','Yes = war ends']},
+{t:'action',x:'<strong>War ends:</strong> set peace_date, transfer 20% of ALL resources from loser'},
+{t:'action',x:'Record war_event audit log'},
+{t:'end',x:'Fight result displayed with casualties report'},
+]},
+'market-trade':{title:'Market Trade Flow',tags:['economy','market.py'],steps:[
+{t:'start',x:'User visits /market'},
+{t:'action',x:'Display current buy/sell offers for all resources'},
+{t:'decision',x:'Action type?',b:['Create Offer','Accept Offer','Direct Trade']},
+{t:'action',x:'<strong>Create Offer:</strong> POST with resource, amount, price, type (buy/sell)'},
+{t:'action',x:'Validate resource balance / gold balance'},
+{t:'action',x:'INSERT into offers table, deduct resources/gold'},
+{t:'action',x:'<strong>Accept Offer:</strong> Match buyer with seller'},
+{t:'action',x:'Transfer resource via give_resource() and gold via stats update'},
+{t:'action',x:'Record trade_event audit log'},
+{t:'action',x:'<strong>Direct Trade:</strong> give_resource(from, to, resource, amount)'},
+{t:'action',x:'Invalidate caches for both parties'},
+{t:'end',x:'Trade complete, inventories updated'},
+]},
+'trade-agreement':{title:'Trade Agreement Lifecycle',tags:['economy','trade_agreements.py'],steps:[
+{t:'start',x:'User visits /trade-agreements'},
+{t:'action',x:'POST /create: proposer_resource, proposer_amount, receiver_resource, receiver_amount, interval_hours'},
+{t:'action',x:'INSERT into trade_agreements (status="pending")'},
+{t:'action',x:'Receiver views agreement, accepts'},
+{t:'action',x:'Status: pending &rarr; active, next_execution set'},
+{t:'action',x:'<strong>Scheduled execution</strong> (every interval_hours):'},
+{t:'action',x:'&rarr; SELECT agreement FOR UPDATE (row-level lock)'},
+{t:'action',x:'&rarr; Check proposer balance for proposer_resource'},
+{t:'decision',x:'Proposer has enough?',b:['Yes','No = status="paused"']},
+{t:'action',x:'&rarr; Check receiver balance for receiver_resource'},
+{t:'action',x:'&rarr; give_resource() both directions'},
+{t:'action',x:'&rarr; Increment execution_count, set next_execution'},
+{t:'decision',x:'Reached max_executions?',b:['No = continue','Yes = status="completed"']},
+{t:'end',x:'Agreement cycle continues until completed/paused/cancelled'},
+]},
+'peace':{title:'Peace Negotiation Flow',tags:['war','wars/routes.py'],steps:[
+{t:'start',x:'User visits /war/{id}, clicks Send Peace Offer'},
+{t:'action',x:'POST /send_peace_offer/{war_id}/{enemy_id}'},
+{t:'action',x:'Specify demanded resources and amounts (optional = white peace)'},
+{t:'action',x:'INSERT into peace (author, demanded_resources, demanded_amount)'},
+{t:'action',x:'UPDATE wars SET peace_offer_id = new peace ID'},
+{t:'action',x:'<strong>Receiver views /peace_offers:</strong>'},
+{t:'action',x:'See incoming offers with resource demands'},
+{t:'decision',x:'Decision?',b:['Accept','Reject']},
+{t:'action',x:'<strong>Reject:</strong> DELETE from peace, SET peace_offer_id=NULL'},
+{t:'action',x:'<strong>Accept:</strong> Validate receiver has demanded resources'},
+{t:'action',x:'Transfer demanded resources via give_resource()'},
+{t:'action',x:'Call Nation.set_peace(): UPDATE wars SET peace_date=now()'},
+{t:'end',x:'War ended via peace agreement'},
+]},
+'province-view':{title:'Province View & Management',tags:['province','province.py'],steps:[
+{t:'start',x:'User visits /province/{id}'},
+{t:'action',x:'Single optimized query: province data + stats + demographics'},
+{t:'action',x:'Fetch user_tech (with cache) &rarr; map to legacy upgrade names'},
+{t:'action',x:'Query user_buildings for this province (building_dictionary JOIN)'},
+{t:'action',x:'Calculate energy: sum(producers x output) vs sum(consumers)'},
+{t:'action',x:'Check consumer_goods sufficiency (demographic consumption model)'},
+{t:'action',x:'Check rations distribution capacity (physical distribution buildings)'},
+{t:'action',x:'Calculate free city slots = citycount - used_city_buildings'},
+{t:'action',x:'Calculate free land slots = land - used_land_buildings'},
+{t:'action',x:'Fetch building_dictionary (cached 10min) for build form'},
+{t:'action',x:'Render province.html with all computed data'},
+{t:'end',x:'Province page displayed with building management UI'},
+]},
+'tax-income':{title:'Tax Income Tick (Background Task)',tags:['economy','countries.py'],steps:[
+{t:'start',x:'Celery task fires (periodic)'},
+{t:'action',x:'For each user: fetch all provinces (population, land, productivity)'},
+{t:'action',x:'For each province: base_tax = population x (0.50 + land_multiplier)'},
+{t:'action',x:'Apply policy modifiers: soldiers +1%, education -2%, etc.'},
+{t:'action',x:'Check consumer goods &rarr; CG tax multiplier (x1.5 if satisfied)'},
+{t:'action',x:'Check rations &rarr; food multiplier (x0.7 if lacking)'},
+{t:'action',x:'Check energy &rarr; energy multiplier (x0.85 if no power)'},
+{t:'action',x:'Calculate building production per province:'},
+{t:'action',x:'&rarr; For each building: output x quantity x productivity_multiplier'},
+{t:'action',x:'&rarr; Subtract operating costs from gold (skip building if broke)'},
+{t:'action',x:'Apply demographic consumption: working/children/elderly eat rations & CG'},
+{t:'action',x:'Population growth: happiness increases growth, pollution decreases it'},
+{t:'action',x:'Phase 3: aging (children&rarr;working&rarr;elderly&rarr;death), employment, education'},
+{t:'action',x:'UPDATE stats SET gold=new_gold, UPDATE user_economy for all resources'},
+{t:'end',x:'All nation economies updated for this tick'},
+]},
+'spy':{title:'Spy Mission Flow',tags:['war','intelligence.py'],steps:[
+{t:'start',x:'User visits intelligence page, selects target nation'},
+{t:'action',x:'Validate: user has spies (user_military check)'},
+{t:'action',x:'Check 12-hour cooldown since last mission'},
+{t:'decision',x:'Cooldown expired?',b:['Yes','No = must wait']},
+{t:'action',x:'Select mission type: espionage, sabotage, or gather intel'},
+{t:'action',x:'Calculate success probability (spy count x prep / enemy_spies / defcon)'},
+{t:'action',x:'Random roll against probability threshold'},
+{t:'decision',x:'Mission success?',b:['Yes','No = spy casualties']},
+{t:'action',x:'<strong>Success:</strong> Reveal enemy data / deal damage / steal resources'},
+{t:'action',x:'<strong>Failure:</strong> Lose spies, possible counter-intel notification'},
+{t:'action',x:'Set cooldown timestamp'},
+{t:'end',x:'Mission report displayed'},
+]}
+};
+
+function showActivityDiagram(key,btn){
+  if(btn)setSubActive('activitySubNav',btn);
+  var d=AD[key];if(!d)return;
+  var tagClass=function(t){return t.includes('war')||t.includes('attack')?'war':t.includes('econ')||t.includes('market')||t.includes('trade')?'econ':t.includes('auth')||t.includes('login')||t.includes('signup')?'auth':t.includes('province')?'province':'admin';};
+  var h='<div class="card"><h3>'+d.title+'</h3><div style="margin-bottom:10px">'+d.tags.map(function(t){return '<span class="tag tag-'+tagClass(t)+'">'+t+'</span>';}).join('')+'</div><div class="flow">';
+  d.steps.forEach(function(s,i){
+    var dc=s.t==='start'?'start':s.t==='end'?'end':s.t==='decision'?'decision':'action';
+    var dl=s.t==='start'?'&#9654;':s.t==='end'?'&#9632;':s.t==='decision'?'&#9670;':i;
+    h+='<div class="flow-step"><div class="flow-dot '+dc+'">'+dl+'</div><div class="flow-content">'+s.x;
+    if(s.b)h+='<br><em>Branches: '+s.b.join(' | ')+'</em>';
+    h+='</div></div>';
+    if(i<d.steps.length-1)h+='<div style="display:flex"><div class="flow-line"></div></div>';
+  });
+  h+='</div></div>';
+  document.getElementById('activityContent').innerHTML=h;
+}
+
+// ===== SEQUENCE =====
+var SD={
+'login':{title:'Login Sequence',actors:['Browser','Flask','Session','PostgreSQL','Discord API'],messages:[
+['Browser','Flask','GET /login'],
+['Flask','Browser','Render login.html'],
+['Browser','Flask','POST /login (username, password)'],
+['Flask','PostgreSQL','SELECT id, hash FROM users WHERE username=%s'],
+['PostgreSQL','Flask','Return user row'],
+['Flask','Flask','bcrypt.checkpw(password, hash)'],
+['Flask','Session','session["user_id"] = id, session.permanent = True'],
+['Flask','PostgreSQL','UPDATE stats SET last_active = now()'],
+['Flask','PostgreSQL','INSERT INTO policies ON CONFLICT DO NOTHING'],
+['Flask','Browser','302 Redirect to /'],
+['Browser','Flask','--- Discord OAuth2 alternate path ---'],
+['Browser','Flask','GET /discord (redirect to Discord)'],
+['Flask','Discord API','OAuth2 authorization URL'],
+['Discord API','Browser','User authorizes, callback'],
+['Browser','Flask','GET /callback?code=...&state=...'],
+['Flask','Discord API','fetch_token(TOKEN_URL, code)'],
+['Discord API','Flask','Return access token'],
+['Flask','Discord API','GET /users/@me'],
+['Discord API','Flask','Return discord user info'],
+['Flask','PostgreSQL','SELECT id FROM users WHERE discord_id=%s'],
+['Flask','Session','session["user_id"] = id'],
+['Flask','Browser','302 Redirect to /'],
+]},
+'signup':{title:'Signup Sequence',actors:['Browser','Flask','PostgreSQL','Google reCAPTCHA'],messages:[
+['Browser','Flask','POST /signup (username, email, password, country, recaptcha)'],
+['Flask','Google reCAPTCHA','POST /recaptcha/api/siteverify'],
+['Google reCAPTCHA','Flask','{ success: true/false }'],
+['Flask','PostgreSQL','Check signup_attempts (rate limit)'],
+['Flask','PostgreSQL','SELECT id FROM users WHERE username=%s (uniqueness)'],
+['Flask','Flask','bcrypt.hashpw(password, salt)'],
+['Flask','PostgreSQL','INSERT INTO users'],
+['Flask','PostgreSQL','INSERT INTO stats (gold=10000)'],
+['Flask','PostgreSQL','INSERT INTO provinces (first province)'],
+['Flask','PostgreSQL','INSERT INTO policies'],
+['Flask','PostgreSQL','_init_economy_tables(): INSERT user_economy FROM resource_dictionary'],
+['Flask','PostgreSQL','UPDATE user_economy: +15k steel, +10k components, +10k aluminium'],
+['Flask','PostgreSQL','INSERT user_military FROM unit_dictionary'],
+['Flask','PostgreSQL','INSERT signup_attempts (successful=TRUE)'],
+['Flask','Browser','302 Redirect to / (logged in)'],
+]},
+'build':{title:'Build Structure Sequence',actors:['Browser','Flask','action_loop','PostgreSQL'],messages:[
+['Browser','Flask','POST /province/build (building_id, qty, province_id)'],
+['Flask','action_loop','build_structure(user_id, building_id, qty, province_id)'],
+['action_loop','PostgreSQL','SELECT pg_advisory_xact_lock(user_id)'],
+['action_loop','PostgreSQL','SELECT * FROM building_dictionary WHERE building_id=%s'],
+['action_loop','PostgreSQL','SELECT tech_id FROM user_tech WHERE is_unlocked=TRUE'],
+['action_loop','action_loop','Validate prerequisites met'],
+['action_loop','PostgreSQL','SELECT quantity FROM user_economy (steel)'],
+['action_loop','action_loop','Check: steel >= base_cost x quantity'],
+['action_loop','PostgreSQL','UPDATE user_economy SET quantity = quantity - cost'],
+['action_loop','PostgreSQL','INSERT INTO user_buildings ON CONFLICT SET quantity += new'],
+['action_loop','Flask','Return success'],
+['Flask','Flask','invalidate_user_cache(user_id)'],
+['Flask','Browser','Redirect to /province/{id}'],
+]},
+'war-full':{title:'War Lifecycle Sequence',actors:['Attacker','Flask','Wars BP','war_orchestrator','PostgreSQL','Defender'],messages:[
+['Attacker','Flask','POST /wars/declare (target_id, war_type, message)'],
+['Flask','PostgreSQL','Validate influence range (0.9x-2x)'],
+['Flask','PostgreSQL','INSERT INTO wars (morale=100/100, supplies=1000/1000)'],
+['Flask','PostgreSQL','INSERT INTO news (defender notification)'],
+['Attacker','Flask','GET /warchoose/{war_id} select 3 units'],
+['Flask','PostgreSQL','SELECT unit quantities FROM user_military'],
+['Attacker','Flask','POST /warchoose unit types chosen'],
+['Attacker','Flask','GET /waramount set unit quantities'],
+['Attacker','Flask','POST /waramount quantities set'],
+['Flask','Wars BP','update_supply(war_id): regenerate 50/hr up to 2000'],
+['Wars BP','PostgreSQL','UPDATE wars SET supplies += regenerated'],
+['Flask','Wars BP','Deduct attack supply cost'],
+['Flask','war_orchestrator','Execute combat (3-round dice system)'],
+['war_orchestrator','war_orchestrator','compute_engagement_metrics()'],
+['war_orchestrator','war_orchestrator','compute_morale_delta()'],
+['war_orchestrator','PostgreSQL','_apply_casualties(winner_pairs, loser_pairs)'],
+['war_orchestrator','PostgreSQL','UPDATE wars SET morale = new_morale'],
+['war_orchestrator','PostgreSQL','record_war_event() audit log'],
+['war_orchestrator','Flask','Return win_label'],
+['Flask','Attacker','Render fight results page'],
+['Attacker','Flask','--- If morale hits 0 ---'],
+['war_orchestrator','PostgreSQL','Nation.set_peace(war_id) peace_date = now()'],
+['war_orchestrator','PostgreSQL','Transfer 20% of ALL resources loser to winner'],
+['Flask','Attacker','War concluded victory/defeat screen'],
+]},
+'market-buy':{title:'Market Buy Sequence',actors:['Buyer','Flask','market.py','PostgreSQL'],messages:[
+['Buyer','Flask','GET /market view sell offers'],
+['Flask','PostgreSQL','SELECT * FROM offers WHERE type="sell"'],
+['Flask','Buyer','Render market page with offers'],
+['Buyer','Flask','POST /market/buy (offer_id, amount)'],
+['Flask','market.py','Process purchase'],
+['market.py','PostgreSQL','SELECT * FROM offers WHERE id=%s FOR UPDATE'],
+['market.py','PostgreSQL','Check buyer gold: SELECT gold FROM stats'],
+['market.py','PostgreSQL','Deduct gold: UPDATE stats SET gold = gold - total'],
+['market.py','PostgreSQL','give_resource(seller, buyer, resource, amount)'],
+['market.py','PostgreSQL','Credit seller gold'],
+['market.py','PostgreSQL','UPDATE/DELETE offer (reduce or remove)'],
+['market.py','PostgreSQL','record_trade_event() audit log'],
+['market.py','Flask','Return success'],
+['Flask','Flask','invalidate_user_cache(buyer, seller)'],
+['Flask','Buyer','Redirect to /market'],
+]},
+'trade-agreement':{title:'Trade Agreement Sequence',actors:['Proposer','Flask','trade_agreements','PostgreSQL','Receiver','Scheduler'],messages:[
+['Proposer','Flask','POST /create-trade-agreement'],
+['Flask','PostgreSQL','INSERT INTO trade_agreements (status=pending)'],
+['Flask','Proposer','Redirect to /trade-agreements'],
+['Receiver','Flask','GET /trade-agreements see pending offer'],
+['Receiver','Flask','POST /accept-trade-agreement/{id}'],
+['Flask','PostgreSQL','UPDATE SET status=active, next_execution=now()+interval'],
+['Scheduler','trade_agreements','execute_trade_agreement(id)'],
+['trade_agreements','PostgreSQL','SELECT ... FOR UPDATE'],
+['trade_agreements','PostgreSQL','check_resource_balance(proposer)'],
+['trade_agreements','PostgreSQL','check_resource_balance(receiver)'],
+['trade_agreements','PostgreSQL','give_resource(proposer to receiver)'],
+['trade_agreements','PostgreSQL','give_resource(receiver to proposer)'],
+['trade_agreements','PostgreSQL','UPDATE execution_count, next_execution'],
+['trade_agreements','PostgreSQL','invalidate_user_cache() for both'],
+]},
+'coalition-join':{title:'Coalition Join Sequence',actors:['Player','Flask','coalitions.py','PostgreSQL','Leader'],messages:[
+['Player','Flask','GET /coalitions browse list'],
+['Flask','PostgreSQL','SELECT * FROM coalitions'],
+['Flask','Player','Render coalition list'],
+['Player','Flask','POST /coalition/apply/{id}'],
+['Flask','PostgreSQL','INSERT INTO coalition_members (role=applicant)'],
+['Flask','Player','Application submitted'],
+['Leader','Flask','GET /coalition/manage see applications'],
+['Flask','PostgreSQL','SELECT FROM coalition_members WHERE role=applicant'],
+['Leader','Flask','POST /coalition/accept/{member_id}'],
+['Flask','PostgreSQL','UPDATE coalition_members SET role=member'],
+['Flask','Leader','Application accepted'],
+]},
+'spy':{title:'Spy Mission Sequence',actors:['Player','Flask','intelligence.py','PostgreSQL'],messages:[
+['Player','Flask','POST /intelligence/mission (target_id, type)'],
+['Flask','PostgreSQL','SELECT spy count FROM user_military'],
+['Flask','PostgreSQL','Check 12-hour cooldown'],
+['Flask','intelligence.py','Calculate success probability'],
+['intelligence.py','intelligence.py','Random roll vs probability'],
+['intelligence.py','PostgreSQL','Success: reveal data / deal damage'],
+['intelligence.py','PostgreSQL','Failure: reduce spy count'],
+['intelligence.py','PostgreSQL','Set cooldown timestamp'],
+['Flask','Player','Render mission report'],
+]}
+};
+
+function showSequenceDiagram(key,btn){
+  if(btn)setSubActive('sequenceSubNav',btn);
+  var d=SD[key];if(!d)return;
+  var colors=['var(--accent)','var(--accent2)','var(--accent3)','var(--accent4)','#b794f6','#38bdf8'];
+  var h='<div class="card"><h3>'+d.title+'</h3>';
+  h+='<div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">';
+  d.actors.forEach(function(a,i){h+='<span style="padding:4px 10px;border-radius:6px;font-size:0.78rem;background:'+colors[i%colors.length]+'22;border:1px solid '+colors[i%colors.length]+'44;color:'+colors[i%colors.length]+'">'+a+'</span>';});
+  h+='</div><div class="diagram-box">';
+  d.messages.forEach(function(m){
+    if(m[2].startsWith('---')){
+      h+='<div style="text-align:center;color:var(--accent4);padding:8px;border-top:1px dashed var(--glass-border);border-bottom:1px dashed var(--glass-border);margin:8px 0;font-size:0.8rem">'+m[2]+'</div>';
+    } else {
+      h+='<div class="seq-row"><span class="seq-actor">'+m[0]+'</span><span class="seq-arrow"><span class="label">'+m[2]+'</span></span><span class="seq-target">'+m[1]+'</span></div>';
+    }
+  });
+  h+='</div></div>';
+  document.getElementById('sequenceContent').innerHTML=h;
+}
+
+// ===== COMMUNICATION =====
+var CD={
+'modules':{title:'Module Dependency Map',nodes:[
+{name:'app.py',links:['login.py','signup.py','wars/routes.py','coalitions.py','market.py','province.py','upgrades.py','intelligence.py','policies.py','statistics.py','trade_agreements.py','change.py','admin_tools.py','countries.py']},
+{name:'database.py',links:['get_request_cursor()','get_db_connection()','query_cache','invalidate_user_cache()','cache_response decorator']},
+{name:'helpers.py',links:['login_required decorator','check_required decorator','error()','get_flagname()','compress_flag_image()','record_task_metric()','record_trade_event()','record_war_event()']},
+{name:'variables.py',links:['RESOURCES (15)','UNITS (12)','BUILDINGS (36)','NEW_INFRA costs/production','INFRA_TYPE_BUILDINGS','Tax multipliers','Demographic rates','Policy definitions','Feature flags']},
+{name:'action_loop.py',links:['build_structure()','start_research()','pg_advisory_xact_lock','building_dictionary','tech_dictionary']},
+{name:'attack_scripts/',links:['Nations.py (Economy, Nation, Military, Units)','war_orchestrator.py','combat_helpers.py','infra_helpers.py','nations_helpers.py','Ground_attack.py','Air_attack.py']},
+]},
+'war-system':{title:'War System Communication',nodes:[
+{name:'wars/routes.py',links:['&rarr; wars/service.py: update_supply()','&rarr; Nations.py: Military, Units, Economy','&rarr; war_orchestrator: persist_fight_results()','&rarr; market.py: give_resource() (peace transfers)','&rarr; helpers.py: check_required, login_required']},
+{name:'wars/service.py',links:['&rarr; helpers.py: get_influence()','&rarr; Nations.py: Nation.get_upgrades()','&rarr; database.py: get_request_cursor()']},
+{name:'war_orchestrator.py',links:['&rarr; combat_helpers.py: compute_*() functions','&rarr; Nations.py: Nation.set_peace(), Economy.resources','&rarr; helpers.py: record_war_event()','&rarr; database.py: get_db_connection()']},
+{name:'combat_helpers.py',links:['&rarr; nations_helpers.py: calculate_bonuses()','&rarr; infra_helpers.py: aggregate_proinfra_for_user()','&rarr; database.py: get_db_cursor()']},
+{name:'Nations.py: Units',links:['&rarr; attach_units(): validate unit selection','&rarr; attack(): compute damage per unit pair','&rarr; unusable_units: check maintenance resources','&rarr; Military: get_military(), get_limits()','&rarr; infrastructure_damage(): random building destruction']},
+]},
+'economy':{title:'Economy System Communication',nodes:[
+{name:'market.py',links:['&rarr; database.py: transactions','&rarr; helpers.py: record_trade_event()','&rarr; Nations.py: Economy.transfer_resources()','&rarr; give_resource(): normalized economy upsert']},
+{name:'trade_agreements.py',links:['&rarr; market.py: give_resource()','&rarr; database.py: get_db_connection() (FOR UPDATE)','&rarr; variables.py: RESOURCES list','&rarr; helpers.py: invalidate_user_cache()']},
+{name:'countries.py',links:['&rarr; variables.py: NEW_INFRA, tax multipliers','&rarr; database.py: query_cache','&rarr; get_revenue(): building production calc','&rarr; get_econ_statistics(): expense calculation']},
+{name:'action_loop.py',links:['&rarr; building_dictionary: costs & prereqs','&rarr; tech_dictionary: research costs','&rarr; user_economy: resource deduction','&rarr; user_buildings: upsert construction']},
+{name:'signup.py',links:['&rarr; _init_economy_tables()','&rarr; resource_dictionary &rarr; user_economy init','&rarr; unit_dictionary &rarr; user_military init','&rarr; Starter resources: 15k steel, 10k components, 10k aluminium']},
+]},
+'province':{title:'Province System Communication',nodes:[
+{name:'province.py',links:['&rarr; action_loop.py: build_structure()','&rarr; variables.py: INFRA, PROVINCE_UNIT_PRICES','&rarr; database.py: cache_response, query_cache','&rarr; tasks.py: distribution_capacity()']},
+{name:'Province Data Model',links:['&rarr; provinces table: pop, happiness, productivity, pollution, energy, land','&rarr; user_buildings: per-province building inventory','&rarr; user_economy: nation-wide resource stockpile','&rarr; user_tech: upgrade unlocks']},
+{name:'Slot System',links:['City slots: commercial buildings (16 types)','Land slots: resource extractors (18 types)','Free slots = total - sum(building_quantities)','6 categories: electricity, retail, public_works, military, industry, processing']},
+{name:'Energy System',links:['Producers: coal_burners, oil_burners, hydro_dams, nuclear_reactors, solar_fields','Consumers: 13 building types requiring power','Balance: production >= consumption for has_power','No power = tax income reduced by 15%']},
+]}
+};
+
+function showCommDiagram(key,btn){
+  if(btn)setSubActive('commSubNav',btn);
+  var d=CD[key];if(!d)return;
+  var h='<div class="card"><h3>'+d.title+'</h3><div class="comm-grid">';
+  d.nodes.forEach(function(n){
+    h+='<div class="comm-node"><h4>'+n.name+'</h4>';
+    n.links.forEach(function(l){h+='<div class="comm-link">'+l+'</div>';});
+    h+='</div>';
+  });
+  h+='</div></div>';
+  document.getElementById('commContent').innerHTML=h;
+}
+
+// ===== INTERACTION OVERVIEW =====
+var ID={
+'new-player':{title:'New Player Journey',frames:[
+{t:'i',n:'Registration',d:'Player creates account (signup or Discord OAuth2)',r:['signup','login']},
+{t:'d',d:'Choose: build economy first or explore?'},
+{t:'i',n:'Province Setup',d:'View first province. Build initial infrastructure (farms, coal_burners, distribution_centers)',r:['province-view','build']},
+{t:'i',n:'Economy Bootstrap',d:'Use starter resources (15k steel, 10k components, 10k aluminium) to construct processing buildings',r:['build']},
+{t:'i',n:'Research Path',d:'Unlock technology upgrades: better_engineering, cheaper_materials, advanced_machinery',r:['research']},
+{t:'i',n:'Tax Income',d:'Background task generates gold from population x tax rate. Building production generates resources.',r:['tax-income']},
+{t:'i',n:'Market Participation',d:'Sell surplus resources, buy needed materials. Create buy/sell offers.',r:['market-trade']},
+{t:'d',d:'Ready for diplomacy & warfare?'},
+{t:'i',n:'Join Coalition',d:'Apply to existing coalition or create own. Access coalition banking, treaties.',r:['coalition-join']},
+{t:'i',n:'Military Buildup',d:'Buy soldiers, tanks, fighters. Limited by army_bases, aerodomes, harbours capacity.',r:['build']},
+{t:'i',n:'First War',d:'Declare war on nation within influence range (0.9x-2x). Fight using 3-unit selection combat system.',r:['war-declare','war-fight']},
+{t:'i',n:'War Resolution',d:'Win by depleting enemy morale to 0 = receive 20% of their resources. Or negotiate peace.',r:['peace']},
+]},
+'war-cycle':{title:'Complete War Cycle',frames:[
+{t:'i',n:'Pre-War Intelligence',d:'Use spies to gather intel on target. 12-hour cooldown between missions.',r:['spy']},
+{t:'i',n:'Target Selection',d:'Check influence range (0.9x-2x). View potential targets.',r:['war-declare']},
+{t:'i',n:'War Declaration',d:'INSERT war record. Both sides start with morale=100, supplies=1000.',r:['war-declare']},
+{t:'l',n:'Combat Loop',d:'Repeats until one side morale reaches 0 or peace is accepted'},
+{t:'i',n:'Supply Regeneration',d:'50 supply per hour, max 2000. Modified by organized_supply_lines & large_storehouses upgrades.',r:['war-fight']},
+{t:'i',n:'Unit Selection',d:'Choose 3 units (or 1 special: ICBM/nuke). Set quantities from military inventory.',r:['war-fight']},
+{t:'i',n:'Combat Resolution',d:'3-round dice system. Unit bonuses, strength weights, maintenance checks.',r:['war-fight']},
+{t:'i',n:'Casualty Persistence',d:'UPDATE user_military for both sides. Morale decremented for loser (5-200 points).',r:['war-fight']},
+{t:'d',d:'Morale <= 0? War ends with resource transfer'},
+{t:'i',n:'Peace Negotiation',d:'Either side can send peace offers with resource demands. Receiver accepts/rejects.',r:['peace']},
+{t:'i',n:'Infrastructure Damage',d:'Bombers and special attacks destroy random buildings (1500 HP each).',r:['war-fight']},
+{t:'i',n:'War Conclusion',d:'Set peace_date. Winner gets 20% of ALL loser resources. Reparation tax calculated.',r:['war-fight','peace']},
+]},
+'econ-cycle':{title:'Economy Cycle',frames:[
+{t:'i',n:'Build Infrastructure',d:'Construct resource-producing buildings in provinces. Each costs steel.',r:['build']},
+{t:'i',n:'Resource Production',d:'Buildings produce resources per tick: farms=rations, mines=raw, factories=processed.',r:['tax-income']},
+{t:'i',n:'Energy Balance',d:'Power plants must supply enough energy for all commercial buildings.',r:['province-view']},
+{t:'i',n:'Distribution System',d:'Physical distribution buildings needed for rations/CG to reach population.',r:['province-view']},
+{t:'i',n:'Tax Collection',d:'Population generates gold income. Modified by land, policies, consumer goods, rations, energy.',r:['tax-income']},
+{t:'i',n:'Market Trading',d:'Sell surplus, buy shortages. Create standing buy/sell orders.',r:['market-trade']},
+{t:'i',n:'Trade Agreements',d:'Set up recurring automatic trades with other players (1h-1wk intervals).',r:['trade-agreement']},
+{t:'i',n:'Technology Research',d:'Spend components to unlock upgrades affecting production, military, and economy.',r:['research']},
+{t:'i',n:'Demographics',d:'Phase 3: children age to working (education-dependent) to elderly to death. Employment affects happiness.',r:['tax-income']},
+{t:'i',n:'Policy Effects',d:'Healthcare (-30% elderly death, +5 happiness), schooling (+50% graduation), subsidies (-30% upkeep), rationing (-15% consumption, -10 happiness).',r:['tax-income']},
+]},
+'coalition-life':{title:'Coalition Lifecycle',frames:[
+{t:'i',n:'Creation',d:'Leader creates coalition with name, description, flag image. Auto-assigned Leader role.',r:[]},
+{t:'i',n:'Recruitment',d:'Players apply. Leader/Co-leader accepts applications. 8 role hierarchy.',r:['coalition-join']},
+{t:'i',n:'Role Management',d:'Roles: Leader, Co-Leader, Minister of War/Foreign Affairs/Interior/Finance, Member, Applicant.',r:[]},
+{t:'i',n:'Coalition Banking',d:'Shared treasury. Members deposit/withdraw resources. Minister of Finance manages.',r:[]},
+{t:'i',n:'Treaty System',d:'NAP (Non-Aggression Pact), MDP (Mutual Defense Pact), Trade agreements between coalitions.',r:[]},
+{t:'i',n:'Coalition Wars',d:'Coordinated military actions. Minister of War manages strategy.',r:['war-declare','war-fight']},
+{t:'d',d:'Coalition thrives or disbands'},
+]}
+};
+
+function showInteractionDiagram(key,btn){
+  if(btn)setSubActive('interactionSubNav',btn);
+  var d=ID[key];if(!d)return;
+  var h='<div class="card"><h3>'+d.title+'</h3><div class="flow">';
+  d.frames.forEach(function(f,i){
+    if(f.t==='d'){
+      h+='<div class="flow-step"><div class="flow-dot decision">&#9670;</div><div class="flow-content"><strong style="color:var(--accent4)">'+f.d+'</strong></div></div>';
+    } else if(f.t==='l'){
+      h+='<div class="interaction-frame" style="border-color:var(--accent3)"><h4 style="color:var(--accent3)">&#8635; '+f.n+'</h4><p style="font-size:0.82rem;color:var(--text-muted)">'+f.d+'</p></div>';
+    } else {
+      h+='<div class="interaction-frame"><h4>'+f.n+'</h4><p style="font-size:0.82rem;color:var(--text-muted)">'+f.d+'</p>';
+      if(f.r&&f.r.length){
+        h+='<div style="margin-top:8px">';
+        f.r.forEach(function(r){h+='<span class="interaction-ref" onclick="jumpToActivity(\''+r+'\')">&#8594; '+r+'</span>';});
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+    if(i<d.frames.length-1)h+='<div style="display:flex"><div class="flow-line"></div></div>';
+  });
+  h+='</div></div>';
+  document.getElementById('interactionContent').innerHTML=h;
+}
+
+function jumpToActivity(key){
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+  document.getElementById('sec-activity').classList.add('active');
+  document.querySelectorAll('.primary-nav button').forEach(function(b){b.classList.remove('active')});
+  document.querySelectorAll('.primary-nav button')[1].classList.add('active');
+  var btns=document.querySelectorAll('#activitySubNav button');
+  btns.forEach(function(b){
+    if(b.textContent.toLowerCase().replace(/\s+/g,'-').indexOf(key)!==-1){b.click();}
+  });
+}
+
+// ===== CLASS DIAGRAM =====
+var CDD={domains:[
+{name:'Users & Auth',color:'#6c63ff',tables:[
+{name:'users',cols:['id SERIAL PK','username VARCHAR UNIQUE','email VARCHAR','hash TEXT (bcrypt)','flag TEXT (base64)','discord_id TEXT','is_verified BOOLEAN','last_active TIMESTAMP']},
+{name:'stats',cols:['id INTEGER PK -> users.id','gold BIGINT','location VARCHAR','influence COMPUTED (SUM provinces.population)']},
+{name:'news',cols:['id SERIAL PK','destination_id -> users.id','message TEXT','created_at TIMESTAMP']},
+{name:'signup_attempts',cols:['id SERIAL PK','ip_address VARCHAR(45)','fingerprint TEXT','email VARCHAR','attempt_time TIMESTAMP','successful BOOLEAN']},
+]},
+{name:'Provinces',color:'#38bdf8',tables:[
+{name:'provinces',cols:['id SERIAL PK','userId -> users.id','provinceName VARCHAR','cityCount INTEGER','land INTEGER','population BIGINT','energy INTEGER','pollution INTEGER','happiness INTEGER','productivity INTEGER','consumer_spending NUMERIC','pop_children BIGINT','pop_working BIGINT','pop_elderly BIGINT']},
+]},
+{name:'Economy (Normalized)',color:'#00d4aa',tables:[
+{name:'resource_dictionary',cols:['resource_id SERIAL PK','name VARCHAR UNIQUE','display_name VARCHAR','is_active BOOLEAN']},
+{name:'user_economy',cols:['user_id -> users.id','resource_id -> resource_dictionary','quantity BIGINT','PK (user_id, resource_id)']},
+{name:'building_dictionary',cols:['building_id SERIAL PK','name VARCHAR UNIQUE','display_name VARCHAR','base_cost INTEGER','tech_prerequisite_id -> tech_dictionary','is_active BOOLEAN']},
+{name:'user_buildings',cols:['user_id -> users.id','building_id -> building_dictionary','province_id -> provinces.id','quantity INTEGER','PK (user_id, building_id, province_id)']},
+]},
+{name:'Military',color:'#ff6b9d',tables:[
+{name:'unit_dictionary',cols:['unit_id SERIAL PK','name VARCHAR UNIQUE','display_name VARCHAR','base_attack INTEGER','base_defense INTEGER','is_active BOOLEAN']},
+{name:'user_military',cols:['user_id -> users.id','unit_id -> unit_dictionary','quantity INTEGER','PK (user_id, unit_id)']},
+]},
+{name:'Technology',color:'#b794f6',tables:[
+{name:'tech_dictionary',cols:['tech_id SERIAL PK','name VARCHAR UNIQUE','display_name VARCHAR','cost INTEGER','prerequisite_id -> tech_dictionary (self-ref)']},
+{name:'user_tech',cols:['user_id -> users.id','tech_id -> tech_dictionary','is_unlocked BOOLEAN','PK (user_id, tech_id)']},
+]},
+{name:'Wars & Combat',color:'#ff6b9d',tables:[
+{name:'wars',cols:['war_id SERIAL PK','attacker_id -> users.id','defender_id -> users.id','war_type VARCHAR','aggressor_message TEXT','peace_date BIGINT (epoch)','peace_offer_id -> peace.id','attacker_supplies INT','defender_supplies INT','attacker_morale INT','defender_morale INT','last_visited BIGINT (epoch)']},
+{name:'peace',cols:['id SERIAL PK','author -> users.id','demanded_resources TEXT (CSV)','demanded_amount TEXT (CSV)']},
+{name:'war_events',cols:['id SERIAL PK','war_id -> wars','winner INTEGER','loser INTEGER','morale_column TEXT','morale_delta INTEGER','new_morale INTEGER','win_label TEXT','concluded BOOLEAN','created_at TIMESTAMP']},
+]},
+{name:'Market & Trade',color:'#ffa726',tables:[
+{name:'offers',cols:['id SERIAL PK','user_id -> users.id','resource VARCHAR','amount INTEGER','price INTEGER','type VARCHAR (buy/sell)']},
+{name:'trade_agreements',cols:['id SERIAL PK','proposer_id -> users.id','receiver_id -> users.id','proposer_resource VARCHAR','proposer_amount INT','receiver_resource VARCHAR','receiver_amount INT','interval_hours INT','next_execution TIMESTAMP','max_executions INT','execution_count INT','status VARCHAR','message TEXT']},
+{name:'trade_events',cols:['id SERIAL PK','offer_id TEXT','offerer -> users.id','offeree -> users.id','resource TEXT','amount INT','price INT','total INT','trade_type TEXT','created_at TIMESTAMP']},
+]},
+{name:'Policies & Coalitions',color:'#ffa726',tables:[
+{name:'policies',cols:['user_id -> users.id PK','soldiers INTEGER (1-7)','education INTEGER (1-6)','active_policies INTEGER[]']},
+{name:'coalitions',cols:['id SERIAL PK','name VARCHAR','description TEXT','flag TEXT','leader_id -> users.id','treasury JSONB']},
+{name:'coalition_members',cols:['id SERIAL PK','coalition_id -> coalitions.id','user_id -> users.id','role VARCHAR (8 levels)']},
+{name:'task_metrics',cols:['id SERIAL PK','task_name TEXT','duration_seconds DOUBLE','measured_at TIMESTAMP']},
+]},
+]};
+
+function showClassDiagram(view,btn){
+  if(btn)setSubActive('classSubNav',btn);
+  var el=document.getElementById('classContent');
+  if(view==='guide'){
+    var h='<div class="card"><h3>Database Architecture Guide</h3><p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px">AnO uses a <strong>normalized PostgreSQL schema</strong> with dictionary + mapping tables for the Economy 2.0 system. The database spans 8 domains with ~25 tables.</p>';
+    h+='<div class="comm-grid">';
+    CDD.domains.forEach(function(d){
+      h+='<div class="comm-node" style="border-color:'+d.color+'44"><h4 style="color:'+d.color+'">'+d.name+'</h4><div class="comm-link">'+d.tables.length+' table'+(d.tables.length>1?'s':'')+': '+d.tables.map(function(t){return t.name}).join(', ')+'</div></div>';
+    });
+    h+='</div></div>';
+    el.innerHTML=h;
+  } else if(view==='tables'){
+    var h='';
+    CDD.domains.forEach(function(d){
+      h+='<div class="card"><h3><span class="icon" style="background:'+d.color+'22;color:'+d.color+'">&#9632;</span>'+d.name+'</h3>';
+      d.tables.forEach(function(t){
+        h+='<div style="background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:10px;padding:14px;margin:8px 0"><h4 style="color:'+d.color+';font-size:0.9rem;margin-bottom:8px">'+t.name+'</h4>';
+        t.cols.forEach(function(c){
+          var isPk=c.includes('PK');var isFk=c.includes('->');
+          h+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:0.76rem;padding:2px 0;color:'+(isPk?'var(--accent)':isFk?'var(--accent2)':'var(--text-muted)')+'">'+(isPk?'&#128273; ':isFk?'&#128279; ':'   ')+c+'</div>';
+        });
+        h+='</div>';
+      });
+      h+='</div>';
+    });
+    el.innerHTML=h;
+  } else if(view==='relationships'){
+    var h='<div class="card"><h3>Key Relationships</h3><div class="diagram-box" style="font-size:0.82rem;line-height:2">';
+    var rels=[
+      'users.id  --1:1--  stats.id',
+      'users.id  --1:N--  provinces.userId',
+      'users.id  --1:N--  user_economy.user_id  (via resource_dictionary)',
+      'users.id  --1:N--  user_buildings.user_id  (via building_dictionary x province)',
+      'users.id  --1:N--  user_military.user_id  (via unit_dictionary)',
+      'users.id  --1:N--  user_tech.user_id  (via tech_dictionary)',
+      'users.id  --1:N--  news.destination_id',
+      'users.id  --1:N--  offers.user_id',
+      'users.id  --1:1--  policies.user_id',
+      'users.id  --N:M--  coalitions  (via coalition_members)',
+      'wars.attacker_id  --N:1--  users.id',
+      'wars.defender_id  --N:1--  users.id',
+      'wars.peace_offer_id  --1:1--  peace.id',
+      'trade_agreements.proposer_id  --N:1--  users.id',
+      'trade_agreements.receiver_id  --N:1--  users.id',
+      'building_dictionary.tech_prerequisite_id  --N:1--  tech_dictionary.tech_id',
+      'tech_dictionary.prerequisite_id  --N:1--  tech_dictionary.tech_id  (self-ref)',
+      'user_buildings  --PK--  (user_id, building_id, province_id)',
+    ];
+    rels.forEach(function(r){
+      var styled=r.replace(/(--[^-]+--)/g,'<span style="color:var(--accent2)">$1</span>').replace(/(\w+\.\w+)/g,'<span style="color:var(--accent)">$1</span>');
+      h+=styled+'<br>';
+    });
+    h+='</div></div>';
+    el.innerHTML=h;
+  }
+}
+
+// Init first views
+showActivityDiagram('login',document.querySelector('#activitySubNav button'));
+</script>
 </body>
 </html>
